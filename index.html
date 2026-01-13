@@ -452,14 +452,72 @@
 
     // --- 称号データ定義 ---
     const BADGES = [
+        // --- 🔰 基本編 ---
         { id: 'first_step', name: '初めの一歩', icon: '🐣', desc: '初めて記録した', check: (d) => d.length >= 1 },
-        { id: 'lucky_beginner', name: '大吉ビギナー', icon: '✨', desc: '大吉を1回引く', check: (d) => d.some(e => e.result === '大吉') },
-        { id: 'lucky_master', name: '大吉ハンター', icon: '👑', desc: '大吉を10回引く', check: (d) => d.filter(e => e.result === '大吉').length >= 10 },
-        { id: 'bad_luck_pro', name: '不屈の心', icon: '🛡️', desc: '凶を3回引く', check: (d) => d.filter(e => e.result === '凶' || e.result === '大凶').length >= 3 },
-        { id: 'shrine_lover', name: '神主見習い', icon: '⛩️', desc: '合計20回参拝', check: (d) => d.length >= 20 },
-        { id: 'combo_3', name: '三日坊主卒業', icon: '🔥', desc: '3日連続で記録', check: (d) => hasConsecutiveDays(d, 3) }
-    ];
+        { id: 'shrine_walker', name: '参拝愛好家', icon: '🚶', desc: '記録が10回に到達', check: (d) => d.length >= 10 },
+        { id: 'shrine_expert', name: '神主見習い', icon: '⛩️', desc: '記録が30回に到達', check: (d) => d.length >= 30 },
+        { id: 'shrine_master', name: '神の使い', icon: '🧚', desc: '記録が50回に到達', check: (d) => d.length >= 50 },
+        { id: 'shrine_legend', name: '生きる伝説', icon: '🐲', desc: '記録が100回に到達', check: (d) => d.length >= 100 },
 
+        // --- 🔮 運勢編 ---
+        { id: 'lucky_beginner', name: '小さな幸せ', icon: '✨', desc: '大吉を1回引く', check: (d) => d.some(e => e.result === '大吉') },
+        { id: 'lucky_five', name: '強運の持ち主', icon: '🌟', desc: '大吉を合計5回引く', check: (d) => d.filter(e => e.result === '大吉').length >= 5 },
+        { id: 'lucky_ten', name: '大吉ハンター', icon: '👑', desc: '大吉を合計10回引く', check: (d) => d.filter(e => e.result === '大吉').length >= 10 },
+        { id: 'bad_luck_guardian', name: '厄除け大師', icon: '🛡️', desc: '凶または大凶を引く', check: (d) => d.some(e => ['凶','大凶'].includes(e.result)) },
+        { id: 'bad_luck_survivor', name: '不屈の精神', icon: '❤️‍🔥', desc: '凶・大凶を合計5回引く', check: (d) => d.filter(e => ['凶','大凶'].includes(e.result)).length >= 5 },
+        { id: 'all_kinds', name: '運命の蒐集家', icon: '🌈', desc: '全種類の運勢をコンプリート', check: (d) => {
+            const types = ['大吉','吉','中吉','小吉','末吉','凶','大凶'];
+            const myTypes = new Set(d.map(e => e.result));
+            return types.every(t => myTypes.has(t));
+        }},
+
+        // --- 🗓️ 季節・日付編 ---
+        { id: 'new_year', name: 'あけおめ！', icon: '🎍', desc: '1月1日〜3日に参拝', check: (d) => d.some(e => {
+            const date = new Date(e.date);
+            return date.getMonth() === 0 && date.getDate() <= 3;
+        })},
+        { id: 'summer_visit', name: '夏の思い出', icon: '🌻', desc: '8月に参拝する', check: (d) => d.some(e => new Date(e.date).getMonth() === 7) },
+        { id: 'end_year', name: '年越し詣', icon: '🔔', desc: '12月31日に参拝', check: (d) => d.some(e => {
+            const date = new Date(e.date);
+            return date.getMonth() === 11 && date.getDate() === 31;
+        })},
+        { id: 'monthly_walker', name: '月参りの達人', icon: '🌙', desc: '12ヶ月すべての月で記録がある', check: (d) => {
+            const months = new Set(d.map(e => new Date(e.date).getMonth()));
+            return months.size === 12;
+        }},
+
+        // --- 🔥 コンボ・特殊編 ---
+        { id: 'combo_3', name: '三日坊主卒業', icon: '🔥', desc: '3日連続で記録', check: (d) => hasConsecutiveDays(d, 3) },
+        { id: 'combo_7', name: '習慣の鬼', icon: '👹', desc: '7日連続で記録', check: (d) => hasConsecutiveDays(d, 7) },
+        { id: 'traveler', name: '神社巡り', icon: '🗺️', desc: '5箇所の違う神社に行く', check: (d) => new Set(d.map(e => e.shrine)).size >= 5 },
+        { id: 'explorer', name: '聖地開拓者', icon: '🧭', desc: '10箇所の違う神社に行く', check: (d) => new Set(d.map(e => e.shrine)).size >= 10 },
+        { id: 'shrine_naming', name: '神宮マニア', icon: '🏯', desc: '名前に「神宮」がつく場所へ行く', check: (d) => d.some(e => e.shrine.includes('神宮')) },
+        { id: 'shrine_tenmangu', name: '学問の神様', icon: '📖', desc: '名前に「天満宮」がつく場所へ行く', check: (d) => d.some(e => e.shrine.includes('天満宮')) },
+        { id: 'shrine_inari', name: 'お稲荷さん', icon: '🦊', desc: '名前に「稲荷」がつく場所へ行く', check: (d) => d.some(e => e.shrine.includes('稲荷')) },
+
+        // --- 🤪 ネタ・不運編 ---
+        { id: 'bad_combo_2', name: '泣きっ面に蜂', icon: '☔', desc: '2回連続で凶・大凶を引く', check: (d) => {
+            if(d.length < 2) return false;
+            // 日付順にソートしてチェック
+            const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
+            for(let i=0; i<sorted.length-1; i++) {
+                if(['凶','大凶'].includes(sorted[i].result) && ['凶','大凶'].includes(sorted[i+1].result)) return true;
+            }
+            return false;
+        }},
+        { id: 'lucky_combo_3', name: '確変モード', icon: '🎰', desc: '3回連続で大吉を引く', check: (d) => {
+            if(d.length < 3) return false;
+            const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
+            for(let i=0; i<sorted.length-2; i++) {
+                if(sorted[i].result === '大吉' && sorted[i+1].result === '大吉' && sorted[i+2].result === '大吉') return true;
+            }
+            return false;
+        }},
+        
+        // --- 👥 交流編 ---
+        { id: 'friend_record', name: '代筆者', icon: '✍️', desc: '自分以外の名前を記録する', check: (d) => d.some(e => e.name !== '自分') },
+        { id: 'party_time', name: '賑やかな参拝', icon: '🎉', desc: '3人以上の名前が記録されている', check: (d) => new Set(d.map(e => e.name)).size >= 3 }
+    ];
     window.onload = () => {
         const savedTheme = localStorage.getItem(THEME_KEY);
         if (savedTheme) {
@@ -888,3 +946,4 @@
 
 </body>
 </html>
+
