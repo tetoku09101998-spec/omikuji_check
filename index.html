@@ -150,7 +150,6 @@
             position: sticky;
             top: 68px;
             z-index: 90;
-            overflow-x: auto;
         }
         .tab {
             flex: 1;
@@ -217,7 +216,16 @@
             justify-content: center;
             font-size: 14px;
             position: relative;
+            cursor: pointer; /* タップ可能を示す */
         }
+        /* 記録がある日のスタイル強化 */
+        .cal-day.has-entry {
+            background-color: rgba(0, 122, 255, 0.05); /* 薄い青背景 */
+        }
+        .cal-day.has-entry:active {
+            background-color: rgba(0, 122, 255, 0.2); /* タップ時 */
+        }
+
         .cal-day.today {
             border-color: var(--primary);
             background: rgba(0,122,255,0.1);
@@ -231,6 +239,69 @@
         .mark-dai-kichi { background: #FF3B30; }
         .mark-kichi { background: #FF9500; }
         .mark-kyo { background: #5856D6; }
+
+        /* --- ポップアップモーダル --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            backdrop-filter: blur(2px);
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: var(--card-bg);
+            width: 85%;
+            max-width: 400px;
+            max-height: 80%;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            overflow-y: auto;
+            position: relative;
+            border: 1px solid var(--input-border);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--input-border);
+            padding-bottom: 10px;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-sub);
+            cursor: pointer;
+            padding: 0 8px;
+        }
+        
+        /* モーダル内のアイテムスタイル */
+        .modal-entry {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid var(--input-border);
+        }
 
         /* 称号リスト */
         .badge-list {
@@ -256,7 +327,6 @@
             box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
             background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,215,0,0.1) 100%);
         }
-        /* マスター称号の特別装飾 */
         .badge-item.master-rank.unlocked {
             border-color: #FF3B30;
             background: linear-gradient(135deg, #fffcf0 0%, #fff 100%);
@@ -273,7 +343,6 @@
         .badge-name { font-size: 12px; font-weight: bold; display: block; line-height:1.2; }
         .badge-desc { font-size: 10px; color: var(--text-sub); display: block; margin-top:4px;}
 
-        /* 六曜表示 */
         #rokuyo-display {
             font-size: 14px;
             font-weight: bold;
@@ -454,6 +523,17 @@
 
 </div>
 
+<div id="day-modal" class="modal-overlay" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-title" id="modal-date">2026/01/01</div>
+            <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div id="modal-body">
+            </div>
+    </div>
+</div>
+
 <script>
     const STORAGE_KEY = 'omikuji_app_data_v1';
     const THEME_KEY = 'omikuji_app_theme';
@@ -463,154 +543,44 @@
     let currentChartType = 'luck';
     let currentCalDate = new Date(); 
 
-    // --- 称号データ定義（順序調整済み） ---
-    // グループ順: [基本回数] -> [運勢・不運] -> [時期・日付] -> [場所・巡礼] -> [その他] -> [マスター]
+    // バッジデータ (省略せずに維持)
     const BADGES = [
-        // --- 1. 基本回数・継続 (6個) ---
         { id: 'first_step', name: '初めの一歩', icon: '🐣', desc: '初めて記録した', check: (d) => d.length >= 1 },
         { id: 'shrine_walker', name: '参拝愛好家', icon: '🚶', desc: '記録が10回に到達', check: (d) => d.length >= 10 },
         { id: 'shrine_expert', name: '神主見習い', icon: '⛩️', desc: '記録が30回に到達', check: (d) => d.length >= 30 },
         { id: 'shrine_master', name: '神の使い', icon: '🧚', desc: '記録が50回に到達', check: (d) => d.length >= 50 },
         { id: 'shrine_legend', name: '生きる伝説', icon: '🐲', desc: '記録が100回に到達', check: (d) => d.length >= 100 },
-        { 
-            id: 'ohakudo_mairi', 
-            name: 'お百度参り', 
-            icon: '🙏', 
-            desc: '一人の記録が100回に到達', 
-            check: (d) => {
-                const counts = {};
-                d.forEach(e => { 
-                    const name = e.name || '自分';
-                    counts[name] = (counts[name] || 0) + 1; 
-                });
-                return Object.values(counts).some(count => count >= 100);
-            }
-        },
-
-        // --- 2. 運勢コレクション・吉凶ドラマ (11個) ---
+        { id: 'ohakudo_mairi', name: 'お百度参り', icon: '🙏', desc: '一人の記録が100回に到達', check: (d) => { const counts = {}; d.forEach(e => { const name = e.name || '自分'; counts[name] = (counts[name] || 0) + 1; }); return Object.values(counts).some(count => count >= 100); } },
         { id: 'lucky_beginner', name: '小さな幸せ', icon: '✨', desc: '大吉を1回引く', check: (d) => d.some(e => e.result === '大吉') },
         { id: 'lucky_five', name: '強運の持ち主', icon: '🌟', desc: '大吉を合計5回引く', check: (d) => d.filter(e => e.result === '大吉').length >= 5 },
         { id: 'lucky_ten', name: '大吉ハンター', icon: '👑', desc: '大吉を合計10回引く', check: (d) => d.filter(e => e.result === '大吉').length >= 10 },
-        { id: 'lucky_combo_3', name: '確変モード', icon: '🎰', desc: '3回連続で大吉を引く', check: (d) => {
-            if(d.length < 3) return false;
-            const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
-            for(let i=0; i<sorted.length-2; i++) {
-                if(sorted[i].result === '大吉' && sorted[i+1].result === '大吉' && sorted[i+2].result === '大吉') return true;
-            }
-            return false;
-        }},
+        { id: 'lucky_combo_3', name: '確変モード', icon: '🎰', desc: '3回連続で大吉を引く', check: (d) => { if(d.length < 3) return false; const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date)); for(let i=0; i<sorted.length-2; i++) { if(sorted[i].result === '大吉' && sorted[i+1].result === '大吉' && sorted[i+2].result === '大吉') return true; } return false; }},
         { id: 'bad_luck_guardian', name: '厄除け大師', icon: '🛡️', desc: '凶または大凶を引く', check: (d) => d.some(e => ['凶','大凶'].includes(e.result)) },
         { id: 'bad_luck_survivor', name: '不屈の精神', icon: '❤️‍🔥', desc: '凶・大凶を合計5回引く', check: (d) => d.filter(e => ['凶','大凶'].includes(e.result)).length >= 5 },
-        { id: 'bad_combo_2', name: '泣きっ面に蜂', icon: '☔', desc: '2回連続で凶・大凶を引く', check: (d) => {
-            if(d.length < 2) return false;
-            const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
-            for(let i=0; i<sorted.length-1; i++) {
-                if(['凶','大凶'].includes(sorted[i].result) && ['凶','大凶'].includes(sorted[i+1].result)) return true;
-            }
-            return false;
-        }},
-        { id: 'v_recovery', name: '昇り調子', icon: '📈', desc: '大凶の直後に大吉を引く', check: (d) => {
-            if(d.length < 2) return false;
-            const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
-            for(let i=0; i<sorted.length-1; i++) {
-                if(sorted[i].result === '大凶' && sorted[i+1].result === '大吉') return true;
-            }
-            return false;
-        }},
-        { id: 'roller_coaster', name: '急転直下', icon: '🎢', desc: '大吉と大凶を連続で引く', check: (d) => {
-            if(d.length < 2) return false;
-            const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
-            for(let i=0; i<sorted.length-1; i++) {
-                const r1 = sorted[i].result;
-                const r2 = sorted[i+1].result;
-                if((r1==='大吉' && r2==='大凶') || (r1==='大凶' && r2==='大吉')) return true;
-            }
-            return false;
-        }},
-        { id: 'ordinary_person', name: 'THE・凡人', icon: '🍵', desc: '吉・中・小を5連続', check: (d) => {
-            if(d.length < 5) return false;
-            const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
-            const normal = ['吉','中吉','小吉'];
-            let streak = 0;
-            for(let i=0; i<sorted.length; i++) {
-                if(normal.includes(sorted[i].result)) streak++;
-                else streak = 0;
-                if(streak >= 5) return true;
-            }
-            return false;
-        }},
-        { id: 'all_kinds', name: '運命の蒐集家', icon: '🌈', desc: '全種類の運勢をコンプリート', check: (d) => {
-            const types = ['大吉','吉','中吉','小吉','末吉','凶','大凶'];
-            const myTypes = new Set(d.map(e => e.result));
-            return types.every(t => myTypes.has(t));
-        }},
-
-        // --- 3. 時期・季節・日付 (8個) ---
-        { id: 'new_year', name: 'あけおめ！', icon: '🎍', desc: '1月1日〜3日に参拝', check: (d) => d.some(e => {
-            const date = new Date(e.date);
-            return date.getMonth() === 0 && date.getDate() <= 3;
-        })},
+        { id: 'bad_combo_2', name: '泣きっ面に蜂', icon: '☔', desc: '2回連続で凶・大凶を引く', check: (d) => { if(d.length < 2) return false; const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date)); for(let i=0; i<sorted.length-1; i++) { if(['凶','大凶'].includes(sorted[i].result) && ['凶','大凶'].includes(sorted[i+1].result)) return true; } return false; }},
+        { id: 'v_recovery', name: '昇り調子', icon: '📈', desc: '大凶の直後に大吉を引く', check: (d) => { if(d.length < 2) return false; const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date)); for(let i=0; i<sorted.length-1; i++) { if(sorted[i].result === '大凶' && sorted[i+1].result === '大吉') return true; } return false; }},
+        { id: 'roller_coaster', name: '急転直下', icon: '🎢', desc: '大吉と大凶を連続で引く', check: (d) => { if(d.length < 2) return false; const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date)); for(let i=0; i<sorted.length-1; i++) { const r1 = sorted[i].result; const r2 = sorted[i+1].result; if((r1==='大吉' && r2==='大凶') || (r1==='大凶' && r2==='大吉')) return true; } return false; }},
+        { id: 'ordinary_person', name: 'THE・凡人', icon: '🍵', desc: '吉・中・小を5連続', check: (d) => { if(d.length < 5) return false; const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date)); const normal = ['吉','中吉','小吉']; let streak = 0; for(let i=0; i<sorted.length; i++) { if(normal.includes(sorted[i].result)) streak++; else streak = 0; if(streak >= 5) return true; } return false; }},
+        { id: 'all_kinds', name: '運命の蒐集家', icon: '🌈', desc: '全種類の運勢をコンプリート', check: (d) => { const types = ['大吉','吉','中吉','小吉','末吉','凶','大凶']; const myTypes = new Set(d.map(e => e.result)); return types.every(t => myTypes.has(t)); }},
+        { id: 'new_year', name: 'あけおめ！', icon: '🎍', desc: '1月1日〜3日に参拝', check: (d) => d.some(e => { const date = new Date(e.date); return date.getMonth() === 0 && date.getDate() <= 3; })},
         { id: 'summer_visit', name: '夏の思い出', icon: '🌻', desc: '8月に参拝する', check: (d) => d.some(e => new Date(e.date).getMonth() === 7) },
-        { id: 'end_year', name: '年越し詣', icon: '🔔', desc: '12月31日に参拝', check: (d) => d.some(e => {
-            const date = new Date(e.date);
-            return date.getMonth() === 11 && date.getDate() === 31;
-        })},
-        { id: 'monthly_walker', name: '月参りの達人', icon: '🌙', desc: '12ヶ月すべての月で記録がある', check: (d) => {
-            const months = new Set(d.map(e => new Date(e.date).getMonth()));
-            return months.size === 12;
-        }},
-        { id: 'weekend_priest', name: '週末の神主', icon: '🍻', desc: '土日の参拝が10回を超える', check: (d) => {
-            const weekends = d.filter(e => {
-                const day = new Date(e.date).getDay();
-                return day === 0 || day === 6;
-            });
-            return weekends.length >= 10;
-        }},
-        { id: 'lucky_seven', name: 'ラッキーセブン', icon: '7️⃣', desc: '7のつく日に7回参拝', check: (d) => {
-            const sevens = d.filter(e => {
-                const day = new Date(e.date).getDate();
-                return day === 7 || day === 17 || day === 27;
-            });
-            return sevens.length >= 7;
-        }},
+        { id: 'end_year', name: '年越し詣', icon: '🔔', desc: '12月31日に参拝', check: (d) => d.some(e => { const date = new Date(e.date); return date.getMonth() === 11 && date.getDate() === 31; })},
+        { id: 'monthly_walker', name: '月参りの達人', icon: '🌙', desc: '12ヶ月すべての月で記録がある', check: (d) => { const months = new Set(d.map(e => new Date(e.date).getMonth())); return months.size === 12; }},
+        { id: 'weekend_priest', name: '週末の神主', icon: '🍻', desc: '土日の参拝が10回を超える', check: (d) => { const weekends = d.filter(e => { const day = new Date(e.date).getDay(); return day === 0 || day === 6; }); return weekends.length >= 10; }},
+        { id: 'lucky_seven', name: 'ラッキーセブン', icon: '7️⃣', desc: '7のつく日に7回参拝', check: (d) => { const sevens = d.filter(e => { const day = new Date(e.date).getDate(); return day === 7 || day === 17 || day === 27; }); return sevens.length >= 7; }},
         { id: 'combo_3', name: '三日坊主卒業', icon: '🔥', desc: '3日連続で記録', check: (d) => hasConsecutiveDays(d, 3) },
         { id: 'combo_7', name: '習慣の鬼', icon: '👹', desc: '7日連続で記録', check: (d) => hasConsecutiveDays(d, 7) },
-
-        // --- 4. 場所・巡礼・名前 (7個) ---
         { id: 'traveler', name: '神社巡り', icon: '🗺️', desc: '5箇所の違う神社に行く', check: (d) => new Set(d.map(e => e.shrine)).size >= 5 },
         { id: 'explorer', name: '聖地開拓者', icon: '🧭', desc: '10箇所の違う神社に行く', check: (d) => new Set(d.map(e => e.shrine)).size >= 10 },
-        { id: 'single_minded', name: '一途な想い', icon: '💘', desc: '同じ神社に5回連続で参拝', check: (d) => {
-            if(d.length < 5) return false;
-            const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
-            let streak = 1;
-            for(let i=1; i<sorted.length; i++) {
-                if(sorted[i].shrine === sorted[i-1].shrine) streak++;
-                else streak = 1;
-                if(streak >= 5) return true;
-            }
-            return false;
-        }},
+        { id: 'single_minded', name: '一途な想い', icon: '💘', desc: '同じ神社に5回連続で参拝', check: (d) => { if(d.length < 5) return false; const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date)); let streak = 1; for(let i=1; i<sorted.length; i++) { if(sorted[i].shrine === sorted[i-1].shrine) streak++; else streak = 1; if(streak >= 5) return true; } return false; }},
         { id: 'shrine_naming', name: '神宮マニア', icon: '🏯', desc: '名前に「神宮」がつく場所へ行く', check: (d) => d.some(e => e.shrine.includes('神宮')) },
         { id: 'shrine_tenmangu', name: '学問の神様', icon: '📖', desc: '名前に「天満宮」がつく場所へ行く', check: (d) => d.some(e => e.shrine.includes('天満宮')) },
         { id: 'shrine_inari', name: 'お稲荷さん', icon: '🦊', desc: '名前に「稲荷」がつく場所へ行く', check: (d) => d.some(e => e.shrine.includes('稲荷')) },
         { id: 'shrine_hachiman', name: '八幡宮の加護', icon: '⚔️', desc: '名前に「八幡」がつく場所へ行く', check: (d) => d.some(e => e.shrine.includes('八幡')) },
-
-        // --- 5. 交流・記録 (3個) ---
         { id: 'writer', name: '文豪', icon: '🖋️', desc: '50文字以上のメモを書く', check: (d) => d.some(e => e.note && e.note.length >= 50) },
         { id: 'friend_record', name: '代筆者', icon: '✍️', desc: '自分以外の名前を記録する', check: (d) => d.some(e => e.name !== '自分') },
         { id: 'party_time', name: '賑やかな参拝', icon: '🎉', desc: '3人以上の名前が記録されている', check: (d) => new Set(d.map(e => e.name)).size >= 3 },
-
-        // --- 6. マスター (1個) ---
-        { 
-            id: 'master_of_omikuji', 
-            name: '御神籤の神', 
-            icon: '👑', 
-            desc: 'この称号以外の全てを獲得する', 
-            check: (d) => {
-                const others = BADGES.filter(b => b.id !== 'master_of_omikuji');
-                return others.every(b => b.check(d));
-            }
-        }
+        { id: 'master_of_omikuji', name: '御神籤の神', icon: '👑', desc: 'この称号以外の全てを獲得する', check: (d) => { const others = BADGES.filter(b => b.id !== 'master_of_omikuji'); return others.every(b => b.check(d)); } }
     ];
 
     window.onload = () => {
@@ -627,15 +597,15 @@
         else document.getElementById('input-name').value = '自分';
 
         loadData();
-        
+
         const today = new Date();
         const firstDay = new Date(today.getFullYear(), 0, 1);
         document.getElementById('filter-start').valueAsDate = firstDay;
         document.getElementById('filter-end').valueAsDate = today;
 
         updateUI();
-        updateRokuyoDisplay(); // 初期六曜
-        renderBadges(); // バッジ表示
+        updateRokuyoDisplay();
+        renderBadges();
     };
 
     function toggleTheme() {
@@ -648,23 +618,15 @@
     function switchTab(tabName) {
         document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
         document.getElementById('tab-' + tabName).classList.remove('hidden');
-        
+
         document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-        // タブのアクティブ化ロジック
         const tabMap = {'input':0, 'history':1, 'analysis':2, 'collection':3, 'settings':4};
         const tabs = document.querySelectorAll('.tab');
         if(tabMap[tabName] !== undefined) tabs[tabMap[tabName]].classList.add('active');
 
-        if(tabName === 'analysis') {
-            updatePersonFilter(); 
-            updateChart();
-        }
-        if(tabName === 'collection') {
-            renderBadges();
-        }
-        if(tabName === 'history') {
-            renderCalendar(); // カレンダー再描画
-        }
+        if(tabName === 'analysis') { updatePersonFilter(); updateChart(); }
+        if(tabName === 'collection') { renderBadges(); }
+        if(tabName === 'history') { renderCalendar(); }
     }
 
     function loadData() {
@@ -678,10 +640,9 @@
     function saveData() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
         updateUI();
-        renderBadges(); // 保存時にバッジ判定
+        renderBadges();
     }
 
-    // --- 六曜簡易計算ロジック (月齢方式近似) ---
     function getRokuyo(dateStr) {
         const date = new Date(dateStr);
         const baseDate = new Date(2000, 0, 6);
@@ -689,13 +650,10 @@
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
         const moonCycle = 29.53059;
         const moonAge = (diffDays % moonCycle + moonCycle) % moonCycle; 
-        
         const lunarDay = Math.floor(moonAge) + 1;
         const lunarMonth = date.getMonth() + 1; 
-
         const rokuyoIndex = (lunarMonth + lunarDay) % 6;
         const rokuyoOrder = ['大安', '赤口', '先勝', '友引', '先負', '仏滅']; 
-        
         return rokuyoOrder[rokuyoIndex];
     }
 
@@ -705,12 +663,11 @@
         const r = getRokuyo(dateVal);
         const el = document.getElementById('rokuyo-display');
         el.textContent = r;
-        el.className = ''; // reset
+        el.className = ''; 
         if(r === '大安') el.classList.add('rokuyo-taian');
         if(r === '仏滅') el.classList.add('rokuyo-butsumetsu');
     }
 
-    // --- 称号ロジック ---
     function hasConsecutiveDays(data, days) {
         if(data.length < days) return false;
         const uniqueDates = [...new Set(data.map(e => e.date))].sort();
@@ -732,10 +689,8 @@
         BADGES.forEach(badge => {
             const isUnlocked = badge.check(entries);
             const div = document.createElement('div');
-            
             let classes = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
             if (badge.id === 'master_of_omikuji') classes += ' master-rank';
-
             div.className = classes;
             div.innerHTML = `
                 <span class="badge-icon">${badge.icon}</span>
@@ -746,7 +701,7 @@
         });
     }
 
-    // --- カレンダーロジック ---
+    // --- カレンダー & モーダル関連 ---
     function switchHistoryView(view) {
         document.getElementById('view-list-btn').classList.remove('active');
         document.getElementById('view-cal-btn').classList.remove('active');
@@ -775,7 +730,7 @@
 
         const firstDay = new Date(year, month, 1);
         const lastDay = new Date(year, month+1, 0);
-        const startDayOfWeek = firstDay.getDay(); // 0:Sun
+        const startDayOfWeek = firstDay.getDay(); 
         const endDate = lastDay.getDate();
 
         const container = document.getElementById('calendar-body');
@@ -799,6 +754,12 @@
 
         const todayStr = new Date().toISOString().split('T')[0];
         if(dateStr === todayStr) div.classList.add('today');
+        
+        // 記録がある場合、スタイル追加とクリックイベント設定
+        if(dayEntries.length > 0) {
+            div.classList.add('has-entry');
+            div.onclick = () => openDayModal(dateStr); // タップで開く！
+        }
 
         div.innerHTML = `<span>${day}</span>`;
 
@@ -813,71 +774,74 @@
         return div;
     }
 
-    // --- 既存機能 ---
+    // --- モーダル制御 ---
+    function openDayModal(dateStr) {
+        const dayEntries = entries.filter(e => e.date === dateStr);
+        if (dayEntries.length === 0) return;
+
+        // モーダルの中身を作成
+        const modalBody = document.getElementById('modal-body');
+        modalBody.innerHTML = '';
+        
+        document.getElementById('modal-date').textContent = dateStr;
+
+        dayEntries.forEach(entry => {
+            const cssClass = getRankClass(entry.result);
+            const div = document.createElement('div');
+            div.className = 'modal-entry';
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div>
+                        <div style="font-weight:bold; font-size:16px;">${entry.shrine}</div>
+                        <div style="font-size:12px; color:var(--text-sub); margin-top:2px;">👤 ${entry.name || '自分'}</div>
+                    </div>
+                    <div class="fortune-badge ${cssClass}">${entry.result}</div>
+                </div>
+                ${entry.note ? `<div style="margin-top:10px; font-size:14px; background:var(--card-bg); padding:8px; border-radius:6px;">${entry.note}</div>` : ''}
+            `;
+            modalBody.appendChild(div);
+        });
+
+        document.getElementById('day-modal').classList.add('show');
+    }
+
+    function closeModal() {
+        document.getElementById('day-modal').classList.remove('show');
+    }
+
+    // --- (既存関数群：変更なし) ---
     function addEntry() {
         const nameInput = document.getElementById('input-name').value.trim();
         const dateInput = document.getElementById('input-date').value;
         const shrineInput = document.getElementById('input-shrine').value;
         const resultInput = document.getElementById('input-result').value;
         const noteInput = document.getElementById('input-note').value;
-
         if (!shrineInput) return alert('神社名を入れて！');
         if (!nameInput) return alert('名前を入れて！');
-
         localStorage.setItem(LAST_NAME_KEY, nameInput);
-
-        const newEntry = {
-            id: Date.now(),
-            name: nameInput,
-            date: dateInput || new Date().toISOString().split('T')[0],
-            shrine: shrineInput,
-            result: resultInput,
-            note: noteInput
-        };
-
+        const newEntry = { id: Date.now(), name: nameInput, date: dateInput || new Date().toISOString().split('T')[0], shrine: shrineInput, result: resultInput, note: noteInput };
         entries.unshift(newEntry);
         entries.sort((a, b) => new Date(b.date) - new Date(a.date));
         saveData();
-        
         document.getElementById('input-shrine').value = '';
         document.getElementById('input-note').value = '';
         switchTab('history');
     }
-
-    function deleteEntry(id) {
-        if(confirm('本当に消すよ？')) {
-            entries = entries.filter(e => e.id !== id);
-            saveData();
-        }
-    }
-    
+    function deleteEntry(id) { if(confirm('本当に消すよ？')) { entries = entries.filter(e => e.id !== id); saveData(); } }
     function shareEntry(id) {
         const entry = entries.find(e => e.id === id);
         if (!entry) return;
         const shareText = `📅 ${entry.date}\n⛩️ ${entry.shrine}で【${entry.result}】を引きました！\n\n#おみくじ管理 #運勢`;
         const shareUrl = window.location.href; 
-        if (navigator.share) {
-            navigator.share({ title: 'おみくじ結果', text: shareText, url: shareUrl }).catch(console.error);
-        } else {
-            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
-            window.open(twitterUrl, '_blank');
-        }
+        if (navigator.share) navigator.share({ title: 'おみくじ結果', text: shareText, url: shareUrl }).catch(console.error);
+        else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
     }
-    
-    function clearAllData() {
-        if(confirm('全部消えるよ！本当によい？')) {
-            entries = [];
-            saveData();
-            alert('まっさらにしました');
-        }
-    }
-
+    function clearAllData() { if(confirm('全部消えるよ！本当によい？')) { entries = []; saveData(); alert('まっさらにしました'); } }
     function updateUI() {
         document.getElementById('entry-count').textContent = entries.length;
         const listEl = document.getElementById('history-list');
         listEl.innerHTML = '';
         if (entries.length === 0) listEl.innerHTML = '<div style="text-align:center; padding:40px; font-size:14px; color:var(--text-sub);">まだ何もないよ！<br>記録タブから追加してね</div>';
-        
         entries.forEach(entry => {
             const cssClass = getRankClass(entry.result);
             const item = document.createElement('div');
@@ -900,128 +864,55 @@
             listEl.appendChild(item);
         });
     }
-
-    function getRankClass(result) {
-        switch(result) {
-            case '大吉': return 'rank-dai-kichi';
-            case '吉': return 'rank-kichi';
-            default: return 'rank-kichi'; 
-        }
-    }
-
+    function getRankClass(result) { switch(result) { case '大吉': return 'rank-dai-kichi'; case '吉': return 'rank-kichi'; default: return 'rank-kichi'; } }
     function updatePersonFilter() {
         const filterSelect = document.getElementById('filter-person');
         const currentVal = filterSelect.value;
         while(filterSelect.options.length > 1) filterSelect.remove(1);
         const names = [...new Set(entries.map(e => e.name))].sort();
-        names.forEach(name => {
-            const option = document.createElement('option');
-            option.value = name;
-            option.textContent = name;
-            filterSelect.appendChild(option);
-        });
-        if(names.includes(currentVal)) filterSelect.value = currentVal;
-        else filterSelect.value = "ALL";
+        names.forEach(name => { const option = document.createElement('option'); option.value = name; option.textContent = name; filterSelect.appendChild(option); });
+        if(names.includes(currentVal)) filterSelect.value = currentVal; else filterSelect.value = "ALL";
     }
-
     function switchChartType(type) {
         currentChartType = type;
         document.getElementById('toggle-luck').classList.remove('active');
         document.getElementById('toggle-shrine').classList.remove('active');
-        if (type === 'luck') document.getElementById('toggle-luck').classList.add('active');
-        else document.getElementById('toggle-shrine').classList.add('active');
+        if (type === 'luck') document.getElementById('toggle-luck').classList.add('active'); else document.getElementById('toggle-shrine').classList.add('active');
         updateChart();
     }
-
     function updateChart() {
         const start = new Date(document.getElementById('filter-start').value);
         const end = new Date(document.getElementById('filter-end').value);
         end.setHours(23,59,59);
         const selectedPerson = document.getElementById('filter-person').value;
-        
-        let filtered = entries.filter(e => {
-            const d = new Date(e.date);
-            return d >= start && d <= end;
-        });
+        let filtered = entries.filter(e => { const d = new Date(e.date); return d >= start && d <= end; });
         if (selectedPerson !== "ALL") filtered = filtered.filter(e => e.name === selectedPerson);
-
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const textColor = isDark ? '#FFFFFF' : '#000000';
         const ctx = document.getElementById('mainChart').getContext('2d');
         if (myChart) myChart.destroy();
-
         if (currentChartType === 'luck') {
             const luckOrder = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
             let datasets = [];
             const persons = selectedPerson === "ALL" ? [...new Set(filtered.map(e => e.name))] : [selectedPerson];
             const colors = ['#007AFF', '#FF3B30', '#34C759', '#FF9500', '#AF52DE', '#5856D6', '#FF2D55', '#8E8E93'];
-
             persons.forEach((person, index) => {
                 const counts = luckOrder.map(luck => filtered.filter(e => e.name === person && e.result === luck).length);
                 datasets.push({ label: person, data: counts, backgroundColor: colors[index % colors.length], borderColor: 'rgba(255,255,255,0.5)', borderWidth: 1, barPercentage: 0.7 });
             });
-
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: luckOrder, datasets: datasets },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { x: { stacked: true, ticks: { color: textColor, font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { stacked: true, ticks: { color: textColor, font: {size: 12, weight:'bold'} }, grid: { display: false } } },
-                    plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { size: 12, weight: 'bold' }, boxWidth: 12 } } }
-                }
-            });
+            myChart = new Chart(ctx, { type: 'bar', data: { labels: luckOrder, datasets: datasets }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, ticks: { color: textColor, font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { stacked: true, ticks: { color: textColor, font: {size: 12, weight:'bold'} }, grid: { display: false } } }, plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { size: 12, weight: 'bold' }, boxWidth: 12 } } } } });
         } else {
             const shrineCounts = {};
             filtered.forEach(e => { shrineCounts[e.shrine] = (shrineCounts[e.shrine] || 0) + 1; });
             const sortedShrines = Object.keys(shrineCounts).sort((a,b) => shrineCounts[b] - shrineCounts[a]);
             const counts = sortedShrines.map(s => shrineCounts[s]);
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: sortedShrines, datasets: [{ label: '参拝回数', data: counts, backgroundColor: '#FF3B30', borderRadius: 4, barPercentage: 0.6 }] },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { x: { ticks: { color: textColor, font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { ticks: { color: textColor, font: {size: 12, weight:'bold'} }, grid: { display: false } } },
-                    plugins: { legend: { display: false } }
-                }
-            });
+            myChart = new Chart(ctx, { type: 'bar', data: { labels: sortedShrines, datasets: [{ label: '参拝回数', data: counts, backgroundColor: '#FF3B30', borderRadius: 4, barPercentage: 0.6 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { color: textColor, font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { ticks: { color: textColor, font: {size: 12, weight:'bold'} }, grid: { display: false } } }, plugins: { legend: { display: false } } } });
         }
         document.getElementById('analysis-summary').textContent = `対象データの記録: ${filtered.length}件`;
     }
-
-    function exportData() {
-        if(entries.length === 0) return alert('空っぽだよ');
-        const blob = new Blob([JSON.stringify(entries, null, 2)], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `omikuji_${new Date().toISOString().slice(0,10)}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-    }
+    function exportData() { if(entries.length === 0) return alert('空っぽだよ'); const blob = new Blob([JSON.stringify(entries, null, 2)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `omikuji_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); }
     function triggerImport() { document.getElementById('file-import').click(); }
-    function importData(input) {
-        const file = input.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const imported = JSON.parse(e.target.result);
-                if (Array.isArray(imported)) {
-                    if(confirm('上書きして読み込む？')) {
-                        entries = imported;
-                        saveData();
-                        alert('復元完了！');
-                    }
-                }
-            } catch (err) { alert('読み込めなかった...'); }
-        };
-        reader.readAsText(file);
-        input.value = '';
-    }
+    function importData(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const imported = JSON.parse(e.target.result); if (Array.isArray(imported)) { if(confirm('上書きして読み込む？')) { entries = imported; saveData(); alert('復元完了！'); } } } catch (err) { alert('読み込めなかった...'); } }; reader.readAsText(file); input.value = ''; }
 </script>
 
 </body>
