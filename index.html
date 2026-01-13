@@ -256,6 +256,19 @@
             box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
             background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,215,0,0.1) 100%);
         }
+        /* マスター称号の特別装飾 */
+        .badge-item.master-rank.unlocked {
+            border-color: #FF3B30;
+            background: linear-gradient(135deg, #fffcf0 0%, #fff 100%);
+            box-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+            100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+        }
+
         .badge-icon { font-size: 32px; margin-bottom: 4px; display:block;}
         .badge-name { font-size: 12px; font-weight: bold; display: block; line-height:1.2; }
         .badge-desc { font-size: 10px; color: var(--text-sub); display: block; margin-top:4px;}
@@ -448,7 +461,7 @@
     let entries = [];
     let myChart = null;
     let currentChartType = 'luck';
-    let currentCalDate = new Date(); // カレンダー表示用
+    let currentCalDate = new Date(); 
 
     // --- 称号データ定義 ---
     const BADGES = [
@@ -464,14 +477,11 @@
             icon: '🙏', 
             desc: '一人の記録が100回に到達', 
             check: (d) => {
-                // 名前ごとに回数を集計するロジック
                 const counts = {};
                 d.forEach(e => { 
-                    // 名前がなければ'自分'としてカウント
                     const name = e.name || '自分';
                     counts[name] = (counts[name] || 0) + 1; 
                 });
-                // 誰か一人でも100回超えていればOK
                 return Object.values(counts).some(count => count >= 100);
             }
         },
@@ -480,7 +490,6 @@
         { id: 'writer', name: '文豪', icon: '🖋️', desc: '50文字以上のメモを書く', check: (d) => d.some(e => e.note && e.note.length >= 50) },
         
         { id: 'weekend_priest', name: '週末の神主', icon: '🍻', desc: '土日の参拝が10回を超える', check: (d) => {
-            // 土(6)か日(0)をカウント
             const weekends = d.filter(e => {
                 const day = new Date(e.date).getDay();
                 return day === 0 || day === 6;
@@ -490,7 +499,6 @@
 
         { id: 'single_minded', name: '一途な想い', icon: '💘', desc: '同じ神社に5回連続で参拝', check: (d) => {
             if(d.length < 5) return false;
-            // 日付順にソート
             const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
             let streak = 1;
             for(let i=1; i<sorted.length; i++) {
@@ -504,7 +512,6 @@
             if(d.length < 2) return false;
             const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
             for(let i=0; i<sorted.length-1; i++) {
-                // 大凶 → 大吉 のパターンを探す
                 if(sorted[i].result === '大凶' && sorted[i+1].result === '大吉') return true;
             }
             return false;
@@ -515,7 +522,6 @@
             for(let i=0; i<sorted.length-1; i++) {
                 const r1 = sorted[i].result;
                 const r2 = sorted[i+1].result;
-                // 大吉→大凶 または 大凶→大吉
                 if((r1==='大吉' && r2==='大凶') || (r1==='大凶' && r2==='大吉')) return true;
             }
             return false;
@@ -581,7 +587,6 @@
         // --- 🤪 ネタ・不運編 ---
         { id: 'bad_combo_2', name: '泣きっ面に蜂', icon: '☔', desc: '2回連続で凶・大凶を引く', check: (d) => {
             if(d.length < 2) return false;
-            // 日付順にソートしてチェック
             const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
             for(let i=0; i<sorted.length-1; i++) {
                 if(['凶','大凶'].includes(sorted[i].result) && ['凶','大凶'].includes(sorted[i+1].result)) return true;
@@ -599,8 +604,25 @@
         
         // --- 👥 交流編 ---
         { id: 'friend_record', name: '代筆者', icon: '✍️', desc: '自分以外の名前を記録する', check: (d) => d.some(e => e.name !== '自分') },
-        { id: 'party_time', name: '賑やかな参拝', icon: '🎉', desc: '3人以上の名前が記録されている', check: (d) => new Set(d.map(e => e.name)).size >= 3 }
+        { id: 'party_time', name: '賑やかな参拝', icon: '🎉', desc: '3人以上の名前が記録されている', check: (d) => new Set(d.map(e => e.name)).size >= 3 },
+
+        // --- 🆕 追加（スマホ枠埋め＆コンプリート用） ---
+        { id: 'shrine_hachiman', name: '八幡宮の加護', icon: '⚔️', desc: '名前に「八幡」がつく場所へ行く', check: (d) => d.some(e => e.shrine.includes('八幡')) },
+
+        { 
+            id: 'master_of_omikuji', 
+            name: '御神籤の神', 
+            icon: '👑', 
+            desc: 'この称号以外の全てを獲得する', 
+            check: (d) => {
+                // 自分以外の全てのバッジの条件を満たしているかチェック
+                // ※ BADGES変数はこの関数が実行される時には定義済みなので参照可能
+                const others = BADGES.filter(b => b.id !== 'master_of_omikuji');
+                return others.every(b => b.check(d));
+            }
+        }
     ];
+
     window.onload = () => {
         const savedTheme = localStorage.getItem(THEME_KEY);
         if (savedTheme) {
@@ -670,31 +692,18 @@
     }
 
     // --- 六曜簡易計算ロジック (月齢方式近似) ---
-    // ※完全な旧暦計算は複雑すぎるため、月齢(Moon Age)を使った近似式を採用
-    //   旧暦日 ≒ 月齢 + 1 (おおよそ)
-    //   六曜 = (旧暦月 + 旧暦日) % 6
     function getRokuyo(dateStr) {
         const date = new Date(dateStr);
-        // 2000年1月6日が新月(月齢0)とする基準
         const baseDate = new Date(2000, 0, 6);
         const diffTime = date.getTime() - baseDate.getTime();
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
         const moonCycle = 29.53059;
-        const moonAge = (diffDays % moonCycle + moonCycle) % moonCycle; // 負の値対応
+        const moonAge = (diffDays % moonCycle + moonCycle) % moonCycle; 
         
-        // 簡易旧暦日
         const lunarDay = Math.floor(moonAge) + 1;
-        // 簡易旧暦月 (季節から推測するのは困難なので、現在の月をそのまま使う近似)
-        // ※正確性には欠けるが、雰囲気用としては機能する
-        // 本来は24節気を使う必要があるが、軽量化のため「月切り」はずれることを許容
         const lunarMonth = date.getMonth() + 1; 
 
         const rokuyoIndex = (lunarMonth + lunarDay) % 6;
-        const rokuyoList = ['大安', '赤口', '先勝', '友引', '先負', '仏滅'];
-        // 配列の順序調整: 通常は 先勝→友引→先負→仏滅→大安→赤口 (index 0=大安とは限らない)
-        // 一般的な順序: [先勝, 友引, 先負, 仏滅, 大安, 赤口]
-        // 旧暦1月1日は先勝(2)
-        // (1+1)%6 = 2 -> 先勝 OK
         const rokuyoOrder = ['大安', '赤口', '先勝', '友引', '先負', '仏滅']; 
         
         return rokuyoOrder[rokuyoIndex];
@@ -714,7 +723,6 @@
     // --- 称号ロジック ---
     function hasConsecutiveDays(data, days) {
         if(data.length < days) return false;
-        // 日付でソートしてユニーク化
         const uniqueDates = [...new Set(data.map(e => e.date))].sort();
         let consecutive = 1;
         for(let i=1; i<uniqueDates.length; i++) {
@@ -734,7 +742,11 @@
         BADGES.forEach(badge => {
             const isUnlocked = badge.check(entries);
             const div = document.createElement('div');
-            div.className = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
+            
+            let classes = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
+            if (badge.id === 'master_of_omikuji') classes += ' master-rank';
+
+            div.className = classes;
             div.innerHTML = `
                 <span class="badge-icon">${badge.icon}</span>
                 <span class="badge-name">${badge.name}</span>
@@ -779,12 +791,10 @@
         const container = document.getElementById('calendar-body');
         container.innerHTML = '';
 
-        // 空白セル
         for(let i=0; i<startDayOfWeek; i++) {
             container.appendChild(createCalCell(''));
         }
 
-        // 日付セル
         for(let d=1; d<=endDate; d++) {
             const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             const dayEntries = entries.filter(e => e.date === dateStr);
@@ -797,13 +807,11 @@
         div.className = 'cal-day';
         if(!day) return div;
 
-        // 今日のマーク
         const todayStr = new Date().toISOString().split('T')[0];
         if(dateStr === todayStr) div.classList.add('today');
 
         div.innerHTML = `<span>${day}</span>`;
 
-        // マーカー表示（その日の運勢）
         dayEntries.forEach(e => {
             const mark = document.createElement('div');
             mark.className = 'cal-mark';
@@ -876,7 +884,6 @@
 
     function updateUI() {
         document.getElementById('entry-count').textContent = entries.length;
-        // リスト表示
         const listEl = document.getElementById('history-list');
         listEl.innerHTML = '';
         if (entries.length === 0) listEl.innerHTML = '<div style="text-align:center; padding:40px; font-size:14px; color:var(--text-sub);">まだ何もないよ！<br>記録タブから追加してね</div>';
@@ -908,7 +915,7 @@
         switch(result) {
             case '大吉': return 'rank-dai-kichi';
             case '吉': return 'rank-kichi';
-            default: return 'rank-kichi'; // 簡略化
+            default: return 'rank-kichi'; 
         }
     }
 
@@ -1029,7 +1036,3 @@
 
 </body>
 </html>
-
-
-
-
