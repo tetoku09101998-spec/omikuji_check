@@ -216,16 +216,14 @@
             justify-content: center;
             font-size: 14px;
             position: relative;
-            cursor: pointer; /* タップ可能を示す */
+            cursor: pointer; 
         }
-        /* 記録がある日のスタイル強化 */
         .cal-day.has-entry {
-            background-color: rgba(0, 122, 255, 0.05); /* 薄い青背景 */
+            background-color: rgba(0, 122, 255, 0.05); 
         }
         .cal-day.has-entry:active {
-            background-color: rgba(0, 122, 255, 0.2); /* タップ時 */
+            background-color: rgba(0, 122, 255, 0.2);
         }
-
         .cal-day.today {
             border-color: var(--primary);
             background: rgba(0,122,255,0.1);
@@ -240,7 +238,7 @@
         .mark-kichi { background: #FF9500; }
         .mark-kyo { background: #5856D6; }
 
-        /* --- ポップアップモーダル --- */
+        /* ポップアップモーダル */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -293,8 +291,6 @@
             cursor: pointer;
             padding: 0 8px;
         }
-        
-        /* モーダル内のアイテムスタイル */
         .modal-entry {
             background: var(--bg);
             border-radius: 8px;
@@ -338,7 +334,6 @@
             50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
             100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
         }
-
         .badge-icon { font-size: 32px; margin-bottom: 4px; display:block;}
         .badge-name { font-size: 12px; font-weight: bold; display: block; line-height:1.2; }
         .badge-desc { font-size: 10px; color: var(--text-sub); display: block; margin-top:4px;}
@@ -355,7 +350,6 @@
         .rokuyo-taian { color: #FF3B30; background: #FFEBEE; }
         .rokuyo-butsumetsu { color: var(--text); background: #EEEEEE; }
 
-        /* その他スタイル維持 */
         .history-item { background: var(--card-bg); padding: 12px 16px; border-bottom: 1px solid var(--input-border); display: flex; flex-direction: column; gap: 8px; }
         .history-top { display: flex; justify-content: space-between; align-items: flex-start; }
         .history-info h3 { font-size: 16px; margin: 0 0 4px 0; font-weight:700; }
@@ -543,7 +537,6 @@
     let currentChartType = 'luck';
     let currentCalDate = new Date(); 
 
-    // バッジデータ (省略せずに維持)
     const BADGES = [
         { id: 'first_step', name: '初めの一歩', icon: '🐣', desc: '初めて記録した', check: (d) => d.length >= 1 },
         { id: 'shrine_walker', name: '参拝愛好家', icon: '🚶', desc: '記録が10回に到達', check: (d) => d.length >= 10 },
@@ -643,6 +636,27 @@
         renderBadges();
     }
 
+    // --- ここで入力候補の更新ロジックを復活！ ---
+    function updateInputCandidates() {
+        const uniqueNames = [...new Set(entries.map(e => e.name))].sort();
+        const nameListEl = document.getElementById('name-list');
+        nameListEl.innerHTML = '';
+        uniqueNames.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            nameListEl.appendChild(opt);
+        });
+
+        const uniqueShrines = [...new Set(entries.map(e => e.shrine))].sort();
+        const shrineListEl = document.getElementById('shrine-list');
+        shrineListEl.innerHTML = '';
+        uniqueShrines.forEach(shrine => {
+            const opt = document.createElement('option');
+            opt.value = shrine;
+            shrineListEl.appendChild(opt);
+        });
+    }
+
     function getRokuyo(dateStr) {
         const date = new Date(dateStr);
         const baseDate = new Date(2000, 0, 6);
@@ -701,7 +715,6 @@
         });
     }
 
-    // --- カレンダー & モーダル関連 ---
     function switchHistoryView(view) {
         document.getElementById('view-list-btn').classList.remove('active');
         document.getElementById('view-cal-btn').classList.remove('active');
@@ -755,10 +768,9 @@
         const todayStr = new Date().toISOString().split('T')[0];
         if(dateStr === todayStr) div.classList.add('today');
         
-        // 記録がある場合、スタイル追加とクリックイベント設定
         if(dayEntries.length > 0) {
             div.classList.add('has-entry');
-            div.onclick = () => openDayModal(dateStr); // タップで開く！
+            div.onclick = () => openDayModal(dateStr); 
         }
 
         div.innerHTML = `<span>${day}</span>`;
@@ -774,12 +786,10 @@
         return div;
     }
 
-    // --- モーダル制御 ---
     function openDayModal(dateStr) {
         const dayEntries = entries.filter(e => e.date === dateStr);
         if (dayEntries.length === 0) return;
 
-        // モーダルの中身を作成
         const modalBody = document.getElementById('modal-body');
         modalBody.innerHTML = '';
         
@@ -809,7 +819,6 @@
         document.getElementById('day-modal').classList.remove('show');
     }
 
-    // --- (既存関数群：変更なし) ---
     function addEntry() {
         const nameInput = document.getElementById('input-name').value.trim();
         const dateInput = document.getElementById('input-date').value;
@@ -837,8 +846,10 @@
         else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
     }
     function clearAllData() { if(confirm('全部消えるよ！本当によい？')) { entries = []; saveData(); alert('まっさらにしました'); } }
+    
     function updateUI() {
         document.getElementById('entry-count').textContent = entries.length;
+        updateInputCandidates(); // ★ここが重要！リスト更新の呼び出しを追加
         const listEl = document.getElementById('history-list');
         listEl.innerHTML = '';
         if (entries.length === 0) listEl.innerHTML = '<div style="text-align:center; padding:40px; font-size:14px; color:var(--text-sub);">まだ何もないよ！<br>記録タブから追加してね</div>';
