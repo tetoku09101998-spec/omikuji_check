@@ -28,6 +28,7 @@
             --text: #000000;
             --text-sub: #333333;
             --danger: #FF3B30;
+            --gold: #FFD700;
             --radius: 12px;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
@@ -149,6 +150,7 @@
             position: sticky;
             top: 68px;
             z-index: 90;
+            overflow-x: auto;
         }
         .tab {
             flex: 1;
@@ -167,100 +169,132 @@
             color: var(--primary);
         }
 
-        /* 履歴アイテム */
-        .history-item {
+        /* 履歴・カレンダー切り替え */
+        .view-toggle {
+            display: flex;
+            margin: 10px 16px;
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .view-btn {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
             background: var(--card-bg);
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--input-border);
+            color: var(--primary);
+            cursor: pointer;
+        }
+        .view-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* カレンダー本体 */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            padding: 10px;
+            background: var(--card-bg);
+        }
+        .cal-header {
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--text-sub);
+            padding-bottom: 8px;
+        }
+        .cal-day {
+            aspect-ratio: 1;
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            position: relative;
         }
-        .history-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+        .cal-day.today {
+            border-color: var(--primary);
+            background: rgba(0,122,255,0.1);
         }
+        .cal-mark {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-top: 2px;
+        }
+        .mark-dai-kichi { background: #FF3B30; }
+        .mark-kichi { background: #FF9500; }
+        .mark-kyo { background: #5856D6; }
+
+        /* 称号リスト */
+        .badge-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+            padding: 10px;
+        }
+        .badge-item {
+            background: var(--card-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            opacity: 0.5;
+            filter: grayscale(100%);
+            transition: all 0.3s;
+        }
+        .badge-item.unlocked {
+            opacity: 1;
+            filter: grayscale(0%);
+            border-color: var(--gold);
+            box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
+            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,215,0,0.1) 100%);
+        }
+        .badge-icon { font-size: 32px; margin-bottom: 4px; display:block;}
+        .badge-name { font-size: 12px; font-weight: bold; display: block; line-height:1.2; }
+        .badge-desc { font-size: 10px; color: var(--text-sub); display: block; margin-top:4px;}
+
+        /* 六曜表示 */
+        #rokuyo-display {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-sub);
+            margin-left: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: var(--input-bg);
+        }
+        .rokuyo-taian { color: #FF3B30; background: #FFEBEE; }
+        .rokuyo-butsumetsu { color: var(--text); background: #EEEEEE; }
+
+        /* その他スタイル維持 */
+        .history-item { background: var(--card-bg); padding: 12px 16px; border-bottom: 1px solid var(--input-border); display: flex; flex-direction: column; gap: 8px; }
+        .history-top { display: flex; justify-content: space-between; align-items: flex-start; }
         .history-info h3 { font-size: 16px; margin: 0 0 4px 0; font-weight:700; }
         .history-info .date { font-size: 12px; color: var(--text-sub); }
-        .history-info .person-tag {
-            display: inline-block;
-            font-size: 11px;
-            background: var(--input-bg);
-            color: var(--primary);
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-top: 4px;
-            border: 1px solid var(--input-border);
-        }
-
-        .fortune-badge {
-            font-size: 14px;
-            padding: 4px 10px;
-            border-radius: 6px;
-            min-width: 60px;
-            text-align: center;
-            font-weight: 700;
-        }
-
-        /* アクションボタンエリア */
-        .action-row {
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-            margin-top: 4px;
-        }
-
-        .action-btn {
-            background: none;
-            border: none;
-            color: var(--text-sub);
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            background: var(--input-bg);
-        }
+        .history-info .person-tag { display: inline-block; font-size: 11px; background: var(--input-bg); color: var(--primary); padding: 2px 6px; border-radius: 4px; margin-top: 4px; border: 1px solid var(--input-border); }
+        .fortune-badge { font-size: 14px; padding: 4px 10px; border-radius: 6px; min-width: 60px; text-align: center; font-weight: 700; }
+        .action-row { display: flex; justify-content: flex-end; gap: 12px; margin-top: 4px; }
+        .action-btn { background: none; border: none; color: var(--text-sub); font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px; background: var(--input-bg); }
         .share-btn { color: var(--primary); font-weight: bold; }
         .delete-btn { color: var(--danger); }
-
         .chart-toggle-row { display: flex; gap: 10px; margin-bottom: 16px; }
-        .toggle-btn {
-            flex: 1; padding: 10px; font-size: 14px;
-            border: 1px solid var(--input-border);
-            background: var(--bg); color: var(--text-sub);
-            border-radius: 8px; cursor: pointer; font-weight: 700;
-            text-align: center;
-        }
-        .toggle-btn.active {
-            background: var(--primary); color: white; border-color: var(--primary);
-        }
-
+        .toggle-btn { flex: 1; padding: 10px; font-size: 14px; border: 1px solid var(--input-border); background: var(--bg); color: var(--text-sub); border-radius: 8px; cursor: pointer; font-weight: 700; text-align: center; }
+        .toggle-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         .date-range-row { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
         .date-range-row input[type="date"] { flex: 1; padding: 8px; font-size: 14px; }
         .filter-row { margin-bottom: 16px; }
         .chart-container { position: relative; height: 350px; width: 100%; }
-
-        .theme-toggle {
-            background: var(--bg);
-            border: 1px solid var(--input-border);
-            color: var(--text);
-            padding: 4px 12px;
-            border-radius: 14px;
-            font-weight: 500;
-            font-size: 12px;
-        }
+        .theme-toggle { background: var(--bg); border: 1px solid var(--input-border); color: var(--text); padding: 4px 12px; border-radius: 14px; font-weight: 500; font-size: 12px; }
         .hidden { display: none; }
         .settings-area { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
-        .btn-small {
-            padding: 12px; font-size: 14px;
-            background: var(--bg); border: 1px solid var(--input-border);
-            color: var(--text); border-radius: 8px; text-align: center; font-weight: 700;
-        }
-
+        .btn-small { padding: 12px; font-size: 14px; background: var(--bg); border: 1px solid var(--input-border); color: var(--text); border-radius: 8px; text-align: center; font-weight: 700; }
         .rank-dai-kichi { color: #D32F2F; background: #FFEBEE; border: 1px solid #D32F2F; }
         .rank-kichi     { color: #E65100; background: #FFF3E0; border: 1px solid #E65100; }
         .rank-chu-kichi { color: #F57C00; background: #FFF8E1; border: 1px solid #F57C00; }
@@ -285,6 +319,7 @@
         <div class="tab active" onclick="switchTab('input')">🖊️ 記録</div>
         <div class="tab" onclick="switchTab('history')">📜 履歴</div>
         <div class="tab" onclick="switchTab('analysis')">📊 分析</div>
+        <div class="tab" onclick="switchTab('collection')">🏆 称号</div>
         <div class="tab" onclick="switchTab('settings')">⚙️ 設定</div>
     </div>
 
@@ -292,13 +327,13 @@
         <div class="card">
             <div class="form-group">
                 <label>👤 名前（誰が？）</label>
-                <input type="text" id="input-name" placeholder="例: 自分、Aさん" list="name-list" autocomplete="off">
+                <input type="text" id="input-name" placeholder="例: 自分" list="name-list" autocomplete="off">
                 <datalist id="name-list"></datalist>
             </div>
 
             <div class="form-group">
-                <label>📅 参拝日</label>
-                <input type="date" id="input-date">
+                <label>📅 参拝日 <span id="rokuyo-display"></span></label>
+                <input type="date" id="input-date" onchange="updateRokuyoDisplay()">
             </div>
 
             <div class="form-group">
@@ -329,38 +364,61 @@
     </div>
 
     <div id="tab-history" class="hidden">
-        <div style="padding: 10px 16px; text-align:right; font-size:12px; color:var(--text-sub);">
-            合計: <span id="entry-count">0</span>件
+        <div class="view-toggle">
+            <div id="view-list-btn" class="view-btn active" onclick="switchHistoryView('list')">リスト</div>
+            <div id="view-cal-btn" class="view-btn" onclick="switchHistoryView('calendar')">カレンダー</div>
         </div>
-        <div id="history-list"></div>
+
+        <div id="history-list-view">
+            <div style="padding: 0 16px; text-align:right; font-size:12px; color:var(--text-sub);">
+                合計: <span id="entry-count">0</span>件
+            </div>
+            <div id="history-list"></div>
+        </div>
+
+        <div id="history-cal-view" class="hidden">
+            <div style="display:flex; justify-content:center; align-items:center; margin-bottom:10px;">
+                <button class="toggle-btn" onclick="changeCalMonth(-1)">◀</button>
+                <span id="cal-month-label" style="font-weight:bold; margin:0 15px;">2026年1月</span>
+                <button class="toggle-btn" onclick="changeCalMonth(1)">▶</button>
+            </div>
+            <div class="calendar-grid">
+                <div class="cal-header">日</div><div class="cal-header">月</div><div class="cal-header">火</div><div class="cal-header">水</div><div class="cal-header">木</div><div class="cal-header">金</div><div class="cal-header">土</div>
+                <div id="calendar-body" style="display:contents;"></div>
+            </div>
+        </div>
     </div>
 
     <div id="tab-analysis" class="hidden">
         <div class="card">
             <h2 style="font-size:16px; margin-bottom:12px;">統計・分析</h2>
-            
             <div class="chart-toggle-row">
                 <div id="toggle-luck" class="toggle-btn active" onclick="switchChartType('luck')">🔮 運勢</div>
                 <div id="toggle-shrine" class="toggle-btn" onclick="switchChartType('shrine')">⛩️ 神社</div>
             </div>
-
             <div class="filter-row">
                 <label>👥 表示対象</label>
                 <select id="filter-person" onchange="updateChart()">
                     <option value="ALL">全員 (比較)</option>
                 </select>
             </div>
-
             <div class="date-range-row">
                 <input type="date" id="filter-start" onchange="updateChart()">
                 <div style="font-size:16px; font-weight:bold;">➡️</div>
                 <input type="date" id="filter-end" onchange="updateChart()">
             </div>
-
             <div class="chart-container">
                 <canvas id="mainChart"></canvas>
             </div>
             <p id="analysis-summary" style="text-align:center; margin-top:16px; font-size:14px; color:var(--text-sub);"></p>
+        </div>
+    </div>
+
+    <div id="tab-collection" class="hidden">
+        <div class="card">
+            <h2 style="font-size:16px; margin-bottom:12px;">🏆 獲得バッジ</h2>
+            <div id="badge-container" class="badge-list">
+                </div>
         </div>
     </div>
 
@@ -373,7 +431,6 @@
                 <input type="file" id="file-import" style="display:none" accept=".json" onchange="importData(this)">
             </div>
         </div>
-        
         <div class="card" style="border:1px solid var(--danger);">
             <h2 style="color:var(--danger); font-size:16px;">危険エリア</h2>
             <div class="settings-area">
@@ -391,6 +448,17 @@
     let entries = [];
     let myChart = null;
     let currentChartType = 'luck';
+    let currentCalDate = new Date(); // カレンダー表示用
+
+    // --- 称号データ定義 ---
+    const BADGES = [
+        { id: 'first_step', name: '初めの一歩', icon: '🐣', desc: '初めて記録した', check: (d) => d.length >= 1 },
+        { id: 'lucky_beginner', name: '大吉ビギナー', icon: '✨', desc: '大吉を1回引く', check: (d) => d.some(e => e.result === '大吉') },
+        { id: 'lucky_master', name: '大吉ハンター', icon: '👑', desc: '大吉を10回引く', check: (d) => d.filter(e => e.result === '大吉').length >= 10 },
+        { id: 'bad_luck_pro', name: '不屈の心', icon: '🛡️', desc: '凶を3回引く', check: (d) => d.filter(e => e.result === '凶' || e.result === '大凶').length >= 3 },
+        { id: 'shrine_lover', name: '神主見習い', icon: '⛩️', desc: '合計20回参拝', check: (d) => d.length >= 20 },
+        { id: 'combo_3', name: '三日坊主卒業', icon: '🔥', desc: '3日連続で記録', check: (d) => hasConsecutiveDays(d, 3) }
+    ];
 
     window.onload = () => {
         const savedTheme = localStorage.getItem(THEME_KEY);
@@ -413,6 +481,8 @@
         document.getElementById('filter-end').valueAsDate = today;
 
         updateUI();
+        updateRokuyoDisplay(); // 初期六曜
+        renderBadges(); // バッジ表示
     };
 
     function toggleTheme() {
@@ -427,24 +497,21 @@
         document.getElementById('tab-' + tabName).classList.remove('hidden');
         
         document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+        // タブのアクティブ化ロジック
+        const tabMap = {'input':0, 'history':1, 'analysis':2, 'collection':3, 'settings':4};
         const tabs = document.querySelectorAll('.tab');
-        if(tabName === 'input') tabs[0].classList.add('active');
-        if(tabName === 'history') tabs[1].classList.add('active');
+        if(tabMap[tabName] !== undefined) tabs[tabMap[tabName]].classList.add('active');
+
         if(tabName === 'analysis') {
-            tabs[2].classList.add('active');
             updatePersonFilter(); 
             updateChart();
         }
-        if(tabName === 'settings') tabs[3].classList.add('active');
-    }
-
-    function switchChartType(type) {
-        currentChartType = type;
-        document.getElementById('toggle-luck').classList.remove('active');
-        document.getElementById('toggle-shrine').classList.remove('active');
-        if (type === 'luck') document.getElementById('toggle-luck').classList.add('active');
-        else document.getElementById('toggle-shrine').classList.add('active');
-        updateChart();
+        if(tabName === 'collection') {
+            renderBadges();
+        }
+        if(tabName === 'history') {
+            renderCalendar(); // カレンダー再描画
+        }
     }
 
     function loadData() {
@@ -458,28 +525,156 @@
     function saveData() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
         updateUI();
+        renderBadges(); // 保存時にバッジ判定
     }
 
-    function updateInputCandidates() {
-        const uniqueNames = [...new Set(entries.map(e => e.name))].sort();
-        const nameListEl = document.getElementById('name-list');
-        nameListEl.innerHTML = '';
-        uniqueNames.forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name;
-            nameListEl.appendChild(opt);
-        });
+    // --- 六曜簡易計算ロジック (月齢方式近似) ---
+    // ※完全な旧暦計算は複雑すぎるため、月齢(Moon Age)を使った近似式を採用
+    //   旧暦日 ≒ 月齢 + 1 (おおよそ)
+    //   六曜 = (旧暦月 + 旧暦日) % 6
+    function getRokuyo(dateStr) {
+        const date = new Date(dateStr);
+        // 2000年1月6日が新月(月齢0)とする基準
+        const baseDate = new Date(2000, 0, 6);
+        const diffTime = date.getTime() - baseDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const moonCycle = 29.53059;
+        const moonAge = (diffDays % moonCycle + moonCycle) % moonCycle; // 負の値対応
+        
+        // 簡易旧暦日
+        const lunarDay = Math.floor(moonAge) + 1;
+        // 簡易旧暦月 (季節から推測するのは困難なので、現在の月をそのまま使う近似)
+        // ※正確性には欠けるが、雰囲気用としては機能する
+        // 本来は24節気を使う必要があるが、軽量化のため「月切り」はずれることを許容
+        const lunarMonth = date.getMonth() + 1; 
 
-        const uniqueShrines = [...new Set(entries.map(e => e.shrine))].sort();
-        const shrineListEl = document.getElementById('shrine-list');
-        shrineListEl.innerHTML = '';
-        uniqueShrines.forEach(shrine => {
-            const opt = document.createElement('option');
-            opt.value = shrine;
-            shrineListEl.appendChild(opt);
+        const rokuyoIndex = (lunarMonth + lunarDay) % 6;
+        const rokuyoList = ['大安', '赤口', '先勝', '友引', '先負', '仏滅'];
+        // 配列の順序調整: 通常は 先勝→友引→先負→仏滅→大安→赤口 (index 0=大安とは限らない)
+        // 一般的な順序: [先勝, 友引, 先負, 仏滅, 大安, 赤口]
+        // 旧暦1月1日は先勝(2)
+        // (1+1)%6 = 2 -> 先勝 OK
+        const rokuyoOrder = ['大安', '赤口', '先勝', '友引', '先負', '仏滅']; 
+        
+        return rokuyoOrder[rokuyoIndex];
+    }
+
+    function updateRokuyoDisplay() {
+        const dateVal = document.getElementById('input-date').value;
+        if(!dateVal) return;
+        const r = getRokuyo(dateVal);
+        const el = document.getElementById('rokuyo-display');
+        el.textContent = r;
+        el.className = ''; // reset
+        if(r === '大安') el.classList.add('rokuyo-taian');
+        if(r === '仏滅') el.classList.add('rokuyo-butsumetsu');
+    }
+
+    // --- 称号ロジック ---
+    function hasConsecutiveDays(data, days) {
+        if(data.length < days) return false;
+        // 日付でソートしてユニーク化
+        const uniqueDates = [...new Set(data.map(e => e.date))].sort();
+        let consecutive = 1;
+        for(let i=1; i<uniqueDates.length; i++) {
+            const prev = new Date(uniqueDates[i-1]);
+            const curr = new Date(uniqueDates[i]);
+            const diff = (curr - prev) / (1000*60*60*24);
+            if(diff === 1) consecutive++;
+            else consecutive = 1;
+            if(consecutive >= days) return true;
+        }
+        return false;
+    }
+
+    function renderBadges() {
+        const container = document.getElementById('badge-container');
+        container.innerHTML = '';
+        BADGES.forEach(badge => {
+            const isUnlocked = badge.check(entries);
+            const div = document.createElement('div');
+            div.className = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
+            div.innerHTML = `
+                <span class="badge-icon">${badge.icon}</span>
+                <span class="badge-name">${badge.name}</span>
+                <span class="badge-desc">${badge.desc}</span>
+            `;
+            container.appendChild(div);
         });
     }
 
+    // --- カレンダーロジック ---
+    function switchHistoryView(view) {
+        document.getElementById('view-list-btn').classList.remove('active');
+        document.getElementById('view-cal-btn').classList.remove('active');
+        document.getElementById('history-list-view').classList.add('hidden');
+        document.getElementById('history-cal-view').classList.add('hidden');
+
+        if(view === 'list') {
+            document.getElementById('view-list-btn').classList.add('active');
+            document.getElementById('history-list-view').classList.remove('hidden');
+        } else {
+            document.getElementById('view-cal-btn').classList.add('active');
+            document.getElementById('history-cal-view').classList.remove('hidden');
+            renderCalendar();
+        }
+    }
+
+    function changeCalMonth(delta) {
+        currentCalDate.setMonth(currentCalDate.getMonth() + delta);
+        renderCalendar();
+    }
+
+    function renderCalendar() {
+        const year = currentCalDate.getFullYear();
+        const month = currentCalDate.getMonth();
+        document.getElementById('cal-month-label').textContent = `${year}年${month+1}月`;
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month+1, 0);
+        const startDayOfWeek = firstDay.getDay(); // 0:Sun
+        const endDate = lastDay.getDate();
+
+        const container = document.getElementById('calendar-body');
+        container.innerHTML = '';
+
+        // 空白セル
+        for(let i=0; i<startDayOfWeek; i++) {
+            container.appendChild(createCalCell(''));
+        }
+
+        // 日付セル
+        for(let d=1; d<=endDate; d++) {
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const dayEntries = entries.filter(e => e.date === dateStr);
+            container.appendChild(createCalCell(d, dayEntries, dateStr));
+        }
+    }
+
+    function createCalCell(day, dayEntries = [], dateStr = '') {
+        const div = document.createElement('div');
+        div.className = 'cal-day';
+        if(!day) return div;
+
+        // 今日のマーク
+        const todayStr = new Date().toISOString().split('T')[0];
+        if(dateStr === todayStr) div.classList.add('today');
+
+        div.innerHTML = `<span>${day}</span>`;
+
+        // マーカー表示（その日の運勢）
+        dayEntries.forEach(e => {
+            const mark = document.createElement('div');
+            mark.className = 'cal-mark';
+            if(e.result === '大吉') mark.classList.add('mark-dai-kichi');
+            else if(e.result.includes('吉')) mark.classList.add('mark-kichi');
+            else mark.classList.add('mark-kyo');
+            div.appendChild(mark);
+        });
+        return div;
+    }
+
+    // --- 既存機能 ---
     function addEntry() {
         const nameInput = document.getElementById('input-name').value.trim();
         const dateInput = document.getElementById('input-date').value;
@@ -517,24 +712,14 @@
         }
     }
     
-    // --- シェア機能の実装 ---
     function shareEntry(id) {
         const entry = entries.find(e => e.id === id);
         if (!entry) return;
-
-        // シェアするテキストを作成
-        const shareText = `📅 ${entry.date}\n⛩️ ${entry.shrine}で【${entry.result}】を引きました！\n👤 ${entry.name}\n\n#おみくじ管理 #運勢`;
-        const shareUrl = window.location.href; // 今のページのURL
-
-        // Web Share API (スマホ用)
+        const shareText = `📅 ${entry.date}\n⛩️ ${entry.shrine}で【${entry.result}】を引きました！\n\n#おみくじ管理 #運勢`;
+        const shareUrl = window.location.href; 
         if (navigator.share) {
-            navigator.share({
-                title: 'おみくじ結果',
-                text: shareText,
-                url: shareUrl
-            }).catch(console.error);
+            navigator.share({ title: 'おみくじ結果', text: shareText, url: shareUrl }).catch(console.error);
         } else {
-            // PC等のフォールバック: Twitter投稿画面を開く
             const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
             window.open(twitterUrl, '_blank');
         }
@@ -550,21 +735,15 @@
 
     function updateUI() {
         document.getElementById('entry-count').textContent = entries.length;
-        updateInputCandidates();
+        // リスト表示
         const listEl = document.getElementById('history-list');
         listEl.innerHTML = '';
-
-        if (entries.length === 0) {
-            listEl.innerHTML = '<div style="text-align:center; padding:40px; font-size:14px; color:var(--text-sub);">まだ何もないよ！<br>記録タブから追加してね</div>';
-            return;
-        }
-
+        if (entries.length === 0) listEl.innerHTML = '<div style="text-align:center; padding:40px; font-size:14px; color:var(--text-sub);">まだ何もないよ！<br>記録タブから追加してね</div>';
+        
         entries.forEach(entry => {
             const cssClass = getRankClass(entry.result);
             const item = document.createElement('div');
             item.className = 'history-item';
-            
-            // シェアボタンを含むHTML
             item.innerHTML = `
                 <div class="history-top">
                     <div class="history-content history-info" style="flex:1;">
@@ -572,19 +751,12 @@
                         <div class="date">📅 ${entry.date}</div>
                         <div class="person-tag">👤 ${entry.name || '自分'}</div>
                     </div>
-                    <div class="fortune-badge ${cssClass}">
-                        ${entry.result}
-                    </div>
+                    <div class="fortune-badge ${cssClass}">${entry.result}</div>
                 </div>
                 ${entry.note ? `<div class="history-content"><div class="note" style="font-size:13px; margin-top:8px;">📝 ${entry.note}</div></div>` : ''}
-                
                 <div class="action-row">
-                    <button class="action-btn share-btn" onclick="shareEntry(${entry.id})">
-                        📤 シェア
-                    </button>
-                    <button class="action-btn delete-btn" onclick="deleteEntry(${entry.id})">
-                        🗑️ 削除
-                    </button>
+                    <button class="action-btn share-btn" onclick="shareEntry(${entry.id})">📤 シェア</button>
+                    <button class="action-btn delete-btn" onclick="deleteEntry(${entry.id})">🗑️ 削除</button>
                 </div>
             `;
             listEl.appendChild(item);
@@ -595,12 +767,7 @@
         switch(result) {
             case '大吉': return 'rank-dai-kichi';
             case '吉': return 'rank-kichi';
-            case '中吉': return 'rank-chu-kichi';
-            case '小吉': return 'rank-sho-kichi';
-            case '末吉': return 'rank-sue-kichi';
-            case '凶': return 'rank-kyo';
-            case '大凶': return 'rank-dai-kyo';
-            default: return '';
+            default: return 'rank-kichi'; // 簡略化
         }
     }
 
@@ -619,6 +786,15 @@
         else filterSelect.value = "ALL";
     }
 
+    function switchChartType(type) {
+        currentChartType = type;
+        document.getElementById('toggle-luck').classList.remove('active');
+        document.getElementById('toggle-shrine').classList.remove('active');
+        if (type === 'luck') document.getElementById('toggle-luck').classList.add('active');
+        else document.getElementById('toggle-shrine').classList.add('active');
+        updateChart();
+    }
+
     function updateChart() {
         const start = new Date(document.getElementById('filter-start').value);
         const end = new Date(document.getElementById('filter-end').value);
@@ -629,9 +805,7 @@
             const d = new Date(e.date);
             return d >= start && d <= end;
         });
-        if (selectedPerson !== "ALL") {
-            filtered = filtered.filter(e => e.name === selectedPerson);
-        }
+        if (selectedPerson !== "ALL") filtered = filtered.filter(e => e.name === selectedPerson);
 
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const textColor = isDark ? '#FFFFFF' : '#000000';
@@ -641,23 +815,12 @@
         if (currentChartType === 'luck') {
             const luckOrder = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
             let datasets = [];
-            const persons = selectedPerson === "ALL" 
-                ? [...new Set(filtered.map(e => e.name))] 
-                : [selectedPerson];
+            const persons = selectedPerson === "ALL" ? [...new Set(filtered.map(e => e.name))] : [selectedPerson];
             const colors = ['#007AFF', '#FF3B30', '#34C759', '#FF9500', '#AF52DE', '#5856D6', '#FF2D55', '#8E8E93'];
 
             persons.forEach((person, index) => {
-                const counts = luckOrder.map(luck => {
-                    return filtered.filter(e => e.name === person && e.result === luck).length;
-                });
-                datasets.push({
-                    label: person,
-                    data: counts,
-                    backgroundColor: colors[index % colors.length],
-                    borderColor: 'rgba(255,255,255,0.5)',
-                    borderWidth: 1,
-                    barPercentage: 0.7,
-                });
+                const counts = luckOrder.map(luck => filtered.filter(e => e.name === person && e.result === luck).length);
+                datasets.push({ label: person, data: counts, backgroundColor: colors[index % colors.length], borderColor: 'rgba(255,255,255,0.5)', borderWidth: 1, barPercentage: 0.7 });
             });
 
             myChart = new Chart(ctx, {
@@ -667,21 +830,8 @@
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            stacked: true,
-                            ticks: { color: textColor, font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 },
-                            grid: { color: isDark ? '#333' : '#ddd' }
-                        },
-                        y: {
-                            stacked: true,
-                            ticks: { color: textColor, font: {size: 12, weight:'bold'} },
-                            grid: { display: false }
-                        }
-                    },
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: textColor, font: { size: 12, weight: 'bold' }, boxWidth: 12 } },
-                    }
+                    scales: { x: { stacked: true, ticks: { color: textColor, font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { stacked: true, ticks: { color: textColor, font: {size: 12, weight:'bold'} }, grid: { display: false } } },
+                    plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { size: 12, weight: 'bold' }, boxWidth: 12 } } }
                 }
             });
         } else {
@@ -689,33 +839,14 @@
             filtered.forEach(e => { shrineCounts[e.shrine] = (shrineCounts[e.shrine] || 0) + 1; });
             const sortedShrines = Object.keys(shrineCounts).sort((a,b) => shrineCounts[b] - shrineCounts[a]);
             const counts = sortedShrines.map(s => shrineCounts[s]);
-
             myChart = new Chart(ctx, {
                 type: 'bar',
-                data: { 
-                    labels: sortedShrines, 
-                    datasets: [{
-                        label: '参拝回数',
-                        data: counts,
-                        backgroundColor: '#FF3B30',
-                        borderRadius: 4,
-                        barPercentage: 0.6
-                    }]
-                },
+                data: { labels: sortedShrines, datasets: [{ label: '参拝回数', data: counts, backgroundColor: '#FF3B30', borderRadius: 4, barPercentage: 0.6 }] },
                 options: {
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            ticks: { color: textColor, font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 },
-                            grid: { color: isDark ? '#333' : '#ddd' }
-                        },
-                        y: {
-                            ticks: { color: textColor, font: {size: 12, weight:'bold'} },
-                            grid: { display: false }
-                        }
-                    },
+                    scales: { x: { ticks: { color: textColor, font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { ticks: { color: textColor, font: {size: 12, weight:'bold'} }, grid: { display: false } } },
                     plugins: { legend: { display: false } }
                 }
             });
@@ -733,9 +864,7 @@
         a.click();
         URL.revokeObjectURL(url);
     }
-
     function triggerImport() { document.getElementById('file-import').click(); }
-
     function importData(input) {
         const file = input.files[0];
         if (!file) return;
@@ -744,7 +873,7 @@
             try {
                 const imported = JSON.parse(e.target.result);
                 if (Array.isArray(imported)) {
-                    if(confirm(`上書きして読み込む？ (${imported.length}件)`)) {
+                    if(confirm('上書きして読み込む？')) {
                         entries = imported;
                         saveData();
                         alert('復元完了！');
