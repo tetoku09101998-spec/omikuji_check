@@ -458,6 +458,23 @@
         { id: 'shrine_expert', name: '神主見習い', icon: '⛩️', desc: '記録が30回に到達', check: (d) => d.length >= 30 },
         { id: 'shrine_master', name: '神の使い', icon: '🧚', desc: '記録が50回に到達', check: (d) => d.length >= 50 },
         { id: 'shrine_legend', name: '生きる伝説', icon: '🐲', desc: '記録が100回に到達', check: (d) => d.length >= 100 },
+        { 
+            id: 'ohakudo_mairi', 
+            name: 'お百度参り', 
+            icon: '🙏', 
+            desc: '一人の記録が100回に到達', 
+            check: (d) => {
+                // 名前ごとに回数を集計するロジック
+                const counts = {};
+                d.forEach(e => { 
+                    // 名前がなければ'自分'としてカウント
+                    const name = e.name || '自分';
+                    counts[name] = (counts[name] || 0) + 1; 
+                });
+                // 誰か一人でも100回超えていればOK
+                return Object.values(counts).some(count => count >= 100);
+            }
+        },
 
         // --- 🔮 運勢編 ---
         { id: 'lucky_beginner', name: '小さな幸せ', icon: '✨', desc: '大吉を1回引く', check: (d) => d.some(e => e.result === '大吉') },
@@ -946,4 +963,5 @@
 
 </body>
 </html>
+
 
