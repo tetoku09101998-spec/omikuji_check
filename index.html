@@ -15,8 +15,6 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FF3B30'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E⛩️%3C/text%3E%3C/svg%3E">
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FF3B30'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E⛩️%3C/text%3E%3C/svg%3E">
 
-    <link rel="manifest" href='data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E3%81%8A%E3%81%BF%E3%81%8F%E3%81%98%E7%AE%A1%E7%90%86%22%2C%22short_name%22%3A%22%E3%81%8A%E3%81%BF%E3%81%8F%E3%81%98%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F2F2F7%22%2C%22theme_color%22%3A%22%23007AFF%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%253E%253Ccircle%20cx%3D%2750%27%20cy%3D%2750%27%20r%3D%2750%27%20fill%3D%27%2523FF3B30%27%2F%253E%253Ctext%20x%3D%2750%27%20y%3D%2770%27%20font-size%3D%2760%27%20text-anchor%3D%27middle%27%20fill%3D%27white%27%253E%E2%9B%A9%EF%B8%8F%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D'>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
     <style>
@@ -45,7 +43,7 @@
             --text-sub: #D1D1D6;
         }
 
-        /* --- スタイル調整 --- */
+        /* --- スタイル --- */
         body {
             font-family: 'Noto Sans JP', sans-serif;
             margin: 0;
@@ -169,6 +167,7 @@
             color: var(--primary);
         }
 
+        /* 履歴アイテム */
         .history-item {
             background: var(--card-bg);
             padding: 12px 16px;
@@ -204,51 +203,44 @@
             font-weight: 700;
         }
 
-        .delete-btn {
+        /* アクションボタンエリア */
+        .action-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .action-btn {
             background: none;
             border: none;
             color: var(--text-sub);
-            text-decoration: underline;
-            padding: 4px 8px;
             font-size: 12px;
             cursor: pointer;
-        }
-
-        /* 分析エリア */
-        .chart-toggle-row {
             display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: var(--input-bg);
         }
+        .share-btn { color: var(--primary); font-weight: bold; }
+        .delete-btn { color: var(--danger); }
+
+        .chart-toggle-row { display: flex; gap: 10px; margin-bottom: 16px; }
         .toggle-btn {
-            flex: 1;
-            padding: 10px;
-            font-size: 14px;
+            flex: 1; padding: 10px; font-size: 14px;
             border: 1px solid var(--input-border);
-            background: var(--bg);
-            color: var(--text-sub);
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 700;
+            background: var(--bg); color: var(--text-sub);
+            border-radius: 8px; cursor: pointer; font-weight: 700;
             text-align: center;
         }
         .toggle-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
+            background: var(--primary); color: white; border-color: var(--primary);
         }
 
-        .date-range-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-            align-items: center;
-        }
-        .date-range-row input[type="date"] {
-            flex: 1;
-            padding: 8px;
-            font-size: 14px;
-        }
+        .date-range-row { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+        .date-range-row input[type="date"] { flex: 1; padding: 8px; font-size: 14px; }
         .filter-row { margin-bottom: 16px; }
         .chart-container { position: relative; height: 350px; width: 100%; }
 
@@ -264,17 +256,11 @@
         .hidden { display: none; }
         .settings-area { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
         .btn-small {
-            padding: 12px;
-            font-size: 14px;
-            background: var(--bg);
-            border: 1px solid var(--input-border);
-            color: var(--text);
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 700;
+            padding: 12px; font-size: 14px;
+            background: var(--bg); border: 1px solid var(--input-border);
+            color: var(--text); border-radius: 8px; text-align: center; font-weight: 700;
         }
 
-        /* 運勢カラー */
         .rank-dai-kichi { color: #D32F2F; background: #FFEBEE; border: 1px solid #D32F2F; }
         .rank-kichi     { color: #E65100; background: #FFF3E0; border: 1px solid #E65100; }
         .rank-chu-kichi { color: #F57C00; background: #FFF8E1; border: 1px solid #F57C00; }
@@ -404,7 +390,7 @@
     const LAST_NAME_KEY = 'omikuji_last_name';
     let entries = [];
     let myChart = null;
-    let currentChartType = 'luck'; // 'luck' or 'shrine'
+    let currentChartType = 'luck';
 
     window.onload = () => {
         const savedTheme = localStorage.getItem(THEME_KEY);
@@ -416,11 +402,8 @@
 
         document.getElementById('input-date').valueAsDate = new Date();
         const lastName = localStorage.getItem(LAST_NAME_KEY);
-        if(lastName) {
-            document.getElementById('input-name').value = lastName;
-        } else {
-            document.getElementById('input-name').value = '自分';
-        }
+        if(lastName) document.getElementById('input-name').value = lastName;
+        else document.getElementById('input-name').value = '自分';
 
         loadData();
         
@@ -455,17 +438,12 @@
         if(tabName === 'settings') tabs[3].classList.add('active');
     }
 
-    // チャート切り替え
     function switchChartType(type) {
         currentChartType = type;
         document.getElementById('toggle-luck').classList.remove('active');
         document.getElementById('toggle-shrine').classList.remove('active');
-        
-        if (type === 'luck') {
-            document.getElementById('toggle-luck').classList.add('active');
-        } else {
-            document.getElementById('toggle-shrine').classList.add('active');
-        }
+        if (type === 'luck') document.getElementById('toggle-luck').classList.add('active');
+        else document.getElementById('toggle-shrine').classList.add('active');
         updateChart();
     }
 
@@ -473,9 +451,7 @@
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
             entries = JSON.parse(stored);
-            entries.forEach(e => {
-                if(!e.name) e.name = '自分';
-            });
+            entries.forEach(e => { if(!e.name) e.name = '自分'; });
         }
     }
 
@@ -531,7 +507,6 @@
         
         document.getElementById('input-shrine').value = '';
         document.getElementById('input-note').value = '';
-        
         switchTab('history');
     }
 
@@ -539,6 +514,29 @@
         if(confirm('本当に消すよ？')) {
             entries = entries.filter(e => e.id !== id);
             saveData();
+        }
+    }
+    
+    // --- シェア機能の実装 ---
+    function shareEntry(id) {
+        const entry = entries.find(e => e.id === id);
+        if (!entry) return;
+
+        // シェアするテキストを作成
+        const shareText = `📅 ${entry.date}\n⛩️ ${entry.shrine}で【${entry.result}】を引きました！\n👤 ${entry.name}\n\n#おみくじ管理 #運勢`;
+        const shareUrl = window.location.href; // 今のページのURL
+
+        // Web Share API (スマホ用)
+        if (navigator.share) {
+            navigator.share({
+                title: 'おみくじ結果',
+                text: shareText,
+                url: shareUrl
+            }).catch(console.error);
+        } else {
+            // PC等のフォールバック: Twitter投稿画面を開く
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+            window.open(twitterUrl, '_blank');
         }
     }
     
@@ -566,6 +564,7 @@
             const item = document.createElement('div');
             item.className = 'history-item';
             
+            // シェアボタンを含むHTML
             item.innerHTML = `
                 <div class="history-top">
                     <div class="history-content history-info" style="flex:1;">
@@ -578,8 +577,14 @@
                     </div>
                 </div>
                 ${entry.note ? `<div class="history-content"><div class="note" style="font-size:13px; margin-top:8px;">📝 ${entry.note}</div></div>` : ''}
-                <div style="text-align:right;">
-                    <button class="delete-btn" onclick="deleteEntry(${entry.id})">削除</button>
+                
+                <div class="action-row">
+                    <button class="action-btn share-btn" onclick="shareEntry(${entry.id})">
+                        📤 シェア
+                    </button>
+                    <button class="action-btn delete-btn" onclick="deleteEntry(${entry.id})">
+                        🗑️ 削除
+                    </button>
                 </div>
             `;
             listEl.appendChild(item);
@@ -602,22 +607,16 @@
     function updatePersonFilter() {
         const filterSelect = document.getElementById('filter-person');
         const currentVal = filterSelect.value;
-        while(filterSelect.options.length > 1) {
-            filterSelect.remove(1);
-        }
-        const names = [...new Set(entries.map(e => e.name))];
-        names.sort();
+        while(filterSelect.options.length > 1) filterSelect.remove(1);
+        const names = [...new Set(entries.map(e => e.name))].sort();
         names.forEach(name => {
             const option = document.createElement('option');
             option.value = name;
             option.textContent = name;
             filterSelect.appendChild(option);
         });
-        if(names.includes(currentVal)) {
-            filterSelect.value = currentVal;
-        } else {
-            filterSelect.value = "ALL";
-        }
+        if(names.includes(currentVal)) filterSelect.value = currentVal;
+        else filterSelect.value = "ALL";
     }
 
     function updateChart() {
@@ -626,7 +625,6 @@
         end.setHours(23,59,59);
         const selectedPerson = document.getElementById('filter-person').value;
         
-        // フィルタリング
         let filtered = entries.filter(e => {
             const d = new Date(e.date);
             return d >= start && d <= end;
@@ -641,7 +639,6 @@
         if (myChart) myChart.destroy();
 
         if (currentChartType === 'luck') {
-            // --- 運勢チャート (Luck Chart) ---
             const luckOrder = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
             let datasets = [];
             const persons = selectedPerson === "ALL" 
@@ -687,20 +684,12 @@
                     }
                 }
             });
-
         } else {
-            // --- 神社チャート (Shrine Chart) ---
-            // 神社ごとのカウントを集計
             const shrineCounts = {};
-            filtered.forEach(e => {
-                shrineCounts[e.shrine] = (shrineCounts[e.shrine] || 0) + 1;
-            });
-            
-            // カウント順にソート
+            filtered.forEach(e => { shrineCounts[e.shrine] = (shrineCounts[e.shrine] || 0) + 1; });
             const sortedShrines = Object.keys(shrineCounts).sort((a,b) => shrineCounts[b] - shrineCounts[a]);
             const counts = sortedShrines.map(s => shrineCounts[s]);
 
-            // 上位10件くらいに絞る？いや、全部出す
             myChart = new Chart(ctx, {
                 type: 'bar',
                 data: { 
@@ -708,7 +697,7 @@
                     datasets: [{
                         label: '参拝回数',
                         data: counts,
-                        backgroundColor: '#FF3B30', /* 神社っぽい赤 */
+                        backgroundColor: '#FF3B30',
                         borderRadius: 4,
                         barPercentage: 0.6
                     }]
@@ -727,17 +716,10 @@
                             grid: { display: false }
                         }
                     },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            titleFont: { size: 14 },
-                            bodyFont: { size: 13 }
-                        }
-                    }
+                    plugins: { legend: { display: false } }
                 }
             });
         }
-
         document.getElementById('analysis-summary').textContent = `対象データの記録: ${filtered.length}件`;
     }
 
