@@ -475,6 +475,64 @@
                 return Object.values(counts).some(count => count >= 100);
             }
         },
+        // --- 🆕 追加アイデア編 ---
+        
+        { id: 'writer', name: '文豪', icon: '🖋️', desc: '50文字以上のメモを書く', check: (d) => d.some(e => e.note && e.note.length >= 50) },
+        
+        { id: 'weekend_priest', name: '週末の神主', icon: '🍻', desc: '土日の参拝が10回を超える', check: (d) => {
+            // 土(6)か日(0)をカウント
+            const weekends = d.filter(e => {
+                const day = new Date(e.date).getDay();
+                return day === 0 || day === 6;
+            });
+            return weekends.length >= 10;
+        }},
+
+        { id: 'single_minded', name: '一途な想い', icon: '💘', desc: '同じ神社に5回連続で参拝', check: (d) => {
+            if(d.length < 5) return false;
+            // 日付順にソート
+            const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
+            let streak = 1;
+            for(let i=1; i<sorted.length; i++) {
+                if(sorted[i].shrine === sorted[i-1].shrine) streak++;
+                else streak = 1;
+                if(streak >= 5) return true;
+            }
+            return false;
+        }},
+
+        { id: 'roller_coaster', name: '急転直下', icon: '🎢', desc: '大吉と大凶を連続で引く', check: (d) => {
+            if(d.length < 2) return false;
+            const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
+            for(let i=0; i<sorted.length-1; i++) {
+                const r1 = sorted[i].result;
+                const r2 = sorted[i+1].result;
+                // 大吉→大凶 または 大凶→大吉
+                if((r1==='大吉' && r2==='大凶') || (r1==='大凶' && r2==='大吉')) return true;
+            }
+            return false;
+        }},
+
+        { id: 'ordinary_person', name: 'THE・凡人', icon: '🍵', desc: '吉・中・小を5連続', check: (d) => {
+            if(d.length < 5) return false;
+            const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
+            const normal = ['吉','中吉','小吉'];
+            let streak = 0;
+            for(let i=0; i<sorted.length; i++) {
+                if(normal.includes(sorted[i].result)) streak++;
+                else streak = 0;
+                if(streak >= 5) return true;
+            }
+            return false;
+        }},
+
+        { id: 'lucky_seven', name: 'ラッキーセブン', icon: '7️⃣', desc: '7のつく日に7回参拝', check: (d) => {
+            const sevens = d.filter(e => {
+                const day = new Date(e.date).getDate();
+                return day === 7 || day === 17 || day === 27;
+            });
+            return sevens.length >= 7;
+        }},
 
         // --- 🔮 運勢編 ---
         { id: 'lucky_beginner', name: '小さな幸せ', icon: '✨', desc: '大吉を1回引く', check: (d) => d.some(e => e.result === '大吉') },
@@ -963,5 +1021,6 @@
 
 </body>
 </html>
+
 
 
