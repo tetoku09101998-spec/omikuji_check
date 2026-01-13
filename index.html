@@ -500,7 +500,15 @@
             }
             return false;
         }},
-
+        { id: 'v_recovery', name: '昇り調子', icon: '📈', desc: '大凶の直後に大吉を引く', check: (d) => {
+            if(d.length < 2) return false;
+            const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
+            for(let i=0; i<sorted.length-1; i++) {
+                // 大凶 → 大吉 のパターンを探す
+                if(sorted[i].result === '大凶' && sorted[i+1].result === '大吉') return true;
+            }
+            return false;
+        }},
         { id: 'roller_coaster', name: '急転直下', icon: '🎢', desc: '大吉と大凶を連続で引く', check: (d) => {
             if(d.length < 2) return false;
             const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date));
@@ -1021,6 +1029,7 @@
 
 </body>
 </html>
+
 
 
 
