@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>おみくじ管理</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="おみくじ">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FF3B30'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E⛩️%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FF3B30'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E⛩️%3C/text%3E%3C/svg%3E">
+
+    <link rel="manifest" href='data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E3%81%8A%E3%81%BF%E3%81%8F%E3%81%98%E7%AE%A1%E7%90%86%22%2C%22short_name%22%3A%22%E3%81%8A%E3%81%BF%E3%81%8F%E3%81%98%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F2F2F7%22%2C%22theme_color%22%3A%22%23007AFF%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%253E%253Ccircle%20cx%3D%2750%27%20cy%3D%2750%27%20r%3D%2750%27%20fill%3D%27%2523FF3B30%27%2F%253E%253Ctext%20x%3D%2750%27%20y%3D%2770%27%20font-size%3D%2760%27%20text-anchor%3D%27middle%27%20fill%3D%27white%27%253E%E2%9B%A9%EF%B8%8F%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D'>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- 配色設定 --- */
+        :root {
+            --primary: #007AFF;
+            --bg: #F2F2F7;
+            --card-bg: #FFFFFF;
+            --input-bg: #EFEFF4;
+            --input-border: #C7C7CC;
+            --text: #000000;
+            --text-sub: #333333;
+            --danger: #FF3B30;
+            --radius: 12px;
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+
+        [data-theme="dark"] {
+            --primary: #0A84FF;
+            --bg: #000000;
+            --card-bg: #1C1C1E;
+            --input-bg: #3A3A3C;
+            --input-border: #636366;
+            --text: #FFFFFF;
+            --text-sub: #D1D1D6;
+        }
+
+        /* --- スタイル調整 --- */
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            font-size: 15px; 
+            line-height: 1.5;
+            padding-top: var(--safe-top);
+            padding-bottom: calc(80px + var(--safe-bottom));
+            overscroll-behavior-y: none;
+        }
+
+        header {
+            background: var(--card-bg);
+            padding: 12px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--input-border);
+            height: 44px;
+        }
+
+        h1 { font-size: 17px; margin: 0; font-weight: 700; }
+
+        .container { width: 100%; padding: 0; }
+
+        .card {
+            background: var(--card-bg);
+            padding: 16px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--input-border);
+        }
+
+        .form-group { margin-bottom: 16px; }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 16px;
+            font-weight: 500;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            box-sizing: border-box;
+            background: var(--input-bg);
+            color: var(--text);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            background: var(--card-bg);
+        }
+
+        input::-webkit-calendar-picker-indicator { opacity: 0; }
+
+        select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+        [data-theme="dark"] select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        }
+
+        button.btn-primary {
+            display: block;
+            width: 92%;
+            margin: 10px auto;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,122,255, 0.3);
+        }
+        button.btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+
+        .tabs {
+            display: flex;
+            background: var(--card-bg);
+            padding: 8px;
+            border-bottom: 1px solid var(--input-border);
+            position: sticky;
+            top: 68px;
+            z-index: 90;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+            border-radius: 6px;
+            color: var(--text-sub);
+            font-weight: 700;
+            margin: 0 2px;
+        }
+        .tab.active {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        .history-item {
+            background: var(--card-bg);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--input-border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .history-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .history-info h3 { font-size: 16px; margin: 0 0 4px 0; font-weight:700; }
+        .history-info .date { font-size: 12px; color: var(--text-sub); }
+        .history-info .person-tag {
+            display: inline-block;
+            font-size: 11px;
+            background: var(--input-bg);
+            color: var(--primary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+            border: 1px solid var(--input-border);
+        }
+
+        .fortune-badge {
+            font-size: 14px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            min-width: 60px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-sub);
+            text-decoration: underline;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* 分析エリア */
+        .chart-toggle-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .toggle-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid var(--input-border);
+            background: var(--bg);
+            color: var(--text-sub);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            text-align: center;
+        }
+        .toggle-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .date-range-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+        .date-range-row input[type="date"] {
+            flex: 1;
+            padding: 8px;
+            font-size: 14px;
+        }
+        .filter-row { margin-bottom: 16px; }
+        .chart-container { position: relative; height: 350px; width: 100%; }
+
+        .theme-toggle {
+            background: var(--bg);
+            border: 1px solid var(--input-border);
+            color: var(--text);
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-weight: 500;
+            font-size: 12px;
+        }
+        .hidden { display: none; }
+        .settings-area { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+        .btn-small {
+            padding: 12px;
+            font-size: 14px;
+            background: var(--bg);
+            border: 1px solid var(--input-border);
+            color: var(--text);
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        /* 運勢カラー */
+        .rank-dai-kichi { color: #D32F2F; background: #FFEBEE; border: 1px solid #D32F2F; }
+        .rank-kichi     { color: #E65100; background: #FFF3E0; border: 1px solid #E65100; }
+        .rank-chu-kichi { color: #F57C00; background: #FFF8E1; border: 1px solid #F57C00; }
+        .rank-sho-kichi { color: #2E7D32; background: #E8F5E9; border: 1px solid #2E7D32; }
+        .rank-sue-kichi { color: #1565C0; background: #E3F2FD; border: 1px solid #1565C0; }
+        .rank-kyo       { color: #6A1B9A; background: #F3E5F5; border: 1px solid #6A1B9A; }
+        .rank-dai-kyo   { color: #000000; background: #EEEEEE; border: 1px solid #000000; }
+        [data-theme="dark"] .rank-dai-kichi { background: rgba(255, 59, 48, 0.2); color: #FF453A; border-color: #FF453A; }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>⛩️ おみくじ</h1>
+    <button class="theme-toggle" onclick="toggleTheme()">🌗 切替</button>
+</header>
+
+<div class="container">
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('input')">🖊️ 記録</div>
+        <div class="tab" onclick="switchTab('history')">📜 履歴</div>
+        <div class="tab" onclick="switchTab('analysis')">📊 分析</div>
+        <div class="tab" onclick="switchTab('settings')">⚙️ 設定</div>
+    </div>
+
+    <div id="tab-input">
+        <div class="card">
+            <div class="form-group">
+                <label>👤 名前（誰が？）</label>
+                <input type="text" id="input-name" placeholder="例: 自分、Aさん" list="name-list" autocomplete="off">
+                <datalist id="name-list"></datalist>
+            </div>
+
+            <div class="form-group">
+                <label>📅 参拝日</label>
+                <input type="date" id="input-date">
+            </div>
+
+            <div class="form-group">
+                <label>⛩️ 神社名</label>
+                <input type="text" id="input-shrine" placeholder="例: 明治神宮" list="shrine-list" autocomplete="off">
+                <datalist id="shrine-list"></datalist>
+            </div>
+
+            <div class="form-group">
+                <label>🔮 運勢</label>
+                <select id="input-result">
+                    <option value="大吉">大吉</option>
+                    <option value="吉">吉</option>
+                    <option value="中吉">中吉</option>
+                    <option value="小吉">小吉</option>
+                    <option value="末吉">末吉</option>
+                    <option value="凶">凶</option>
+                    <option value="大凶">大凶</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>📝 メモ</label>
+                <textarea id="input-note" rows="3" placeholder="ここに入力"></textarea>
+            </div>
+        </div>
+        <button class="btn-primary" onclick="addEntry()">💾 保存する！！</button>
+    </div>
+
+    <div id="tab-history" class="hidden">
+        <div style="padding: 10px 16px; text-align:right; font-size:12px; color:var(--text-sub);">
+            合計: <span id="entry-count">0</span>件
+        </div>
+        <div id="history-list"></div>
+    </div>
+
+    <div id="tab-analysis" class="hidden">
+        <div class="card">
+            <h2 style="font-size:16px; margin-bottom:12px;">統計・分析</h2>
+            
+            <div class="chart-toggle-row">
+                <div id="toggle-luck" class="toggle-btn active" onclick="switchChartType('luck')">🔮 運勢</div>
+                <div id="toggle-shrine" class="toggle-btn" onclick="switchChartType('shrine')">⛩️ 神社</div>
+            </div>
+
+            <div class="filter-row">
+                <label>👥 表示対象</label>
+                <select id="filter-person" onchange="updateChart()">
+                    <option value="ALL">全員 (比較)</option>
+                </select>
+            </div>
+
+            <div class="date-range-row">
+                <input type="date" id="filter-start" onchange="updateChart()">
+                <div style="font-size:16px; font-weight:bold;">➡️</div>
+                <input type="date" id="filter-end" onchange="updateChart()">
+            </div>
+
+            <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+            </div>
+            <p id="analysis-summary" style="text-align:center; margin-top:16px; font-size:14px; color:var(--text-sub);"></p>
+        </div>
+    </div>
+
+    <div id="tab-settings" class="hidden">
+        <div class="card">
+            <h2 style="font-size:16px;">データ管理</h2>
+            <div class="settings-area">
+                <button class="btn-small" onclick="exportData()">📤 保存 (DL)</button>
+                <button class="btn-small" onclick="triggerImport()">📥 復元</button>
+                <input type="file" id="file-import" style="display:none" accept=".json" onchange="importData(this)">
+            </div>
+        </div>
+        
+        <div class="card" style="border:1px solid var(--danger);">
+            <h2 style="color:var(--danger); font-size:16px;">危険エリア</h2>
+            <div class="settings-area">
+                <button class="btn-small" style="background:var(--danger); color:white; border:none;" onclick="clearAllData()">⚠️ 全消去</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const STORAGE_KEY = 'omikuji_app_data_v1';
+    const THEME_KEY = 'omikuji_app_theme';
+    const LAST_NAME_KEY = 'omikuji_last_name';
+    let entries = [];
+    let myChart = null;
+    let currentChartType = 'luck'; // 'luck' or 'shrine'
+
+    window.onload = () => {
+        const savedTheme = localStorage.getItem(THEME_KEY);
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        document.getElementById('input-date').valueAsDate = new Date();
+        const lastName = localStorage.getItem(LAST_NAME_KEY);
+        if(lastName) {
+            document.getElementById('input-name').value = lastName;
+        } else {
+            document.getElementById('input-name').value = '自分';
+        }
+
+        loadData();
+        
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), 0, 1);
+        document.getElementById('filter-start').valueAsDate = firstDay;
+        document.getElementById('filter-end').valueAsDate = today;
+
+        updateUI();
+    };
+
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem(THEME_KEY, next);
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+        document.getElementById('tab-' + tabName).classList.remove('hidden');
+        
+        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+        const tabs = document.querySelectorAll('.tab');
+        if(tabName === 'input') tabs[0].classList.add('active');
+        if(tabName === 'history') tabs[1].classList.add('active');
+        if(tabName === 'analysis') {
+            tabs[2].classList.add('active');
+            updatePersonFilter(); 
+            updateChart();
+        }
+        if(tabName === 'settings') tabs[3].classList.add('active');
+    }
+
+    // チャート切り替え
+    function switchChartType(type) {
+        currentChartType = type;
+        document.getElementById('toggle-luck').classList.remove('active');
+        document.getElementById('toggle-shrine').classList.remove('active');
+        
+        if (type === 'luck') {
+            document.getElementById('toggle-luck').classList.add('active');
+        } else {
+            document.getElementById('toggle-shrine').classList.add('active');
+        }
+        updateChart();
+    }
+
+    function loadData() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            entries = JSON.parse(stored);
+            entries.forEach(e => {
+                if(!e.name) e.name = '自分';
+            });
+        }
+    }
+
+    function saveData() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+        updateUI();
+    }
+
+    function updateInputCandidates() {
+        const uniqueNames = [...new Set(entries.map(e => e.name))].sort();
+        const nameListEl = document.getElementById('name-list');
+        nameListEl.innerHTML = '';
+        uniqueNames.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            nameListEl.appendChild(opt);
+        });
+
+        const uniqueShrines = [...new Set(entries.map(e => e.shrine))].sort();
+        const shrineListEl = document.getElementById('shrine-list');
+        shrineListEl.innerHTML = '';
+        uniqueShrines.forEach(shrine => {
+            const opt = document.createElement('option');
+            opt.value = shrine;
+            shrineListEl.appendChild(opt);
+        });
+    }
+
+    function addEntry() {
+        const nameInput = document.getElementById('input-name').value.trim();
+        const dateInput = document.getElementById('input-date').value;
+        const shrineInput = document.getElementById('input-shrine').value;
+        const resultInput = document.getElementById('input-result').value;
+        const noteInput = document.getElementById('input-note').value;
+
+        if (!shrineInput) return alert('神社名を入れて！');
+        if (!nameInput) return alert('名前を入れて！');
+
+        localStorage.setItem(LAST_NAME_KEY, nameInput);
+
+        const newEntry = {
+            id: Date.now(),
+            name: nameInput,
+            date: dateInput || new Date().toISOString().split('T')[0],
+            shrine: shrineInput,
+            result: resultInput,
+            note: noteInput
+        };
+
+        entries.unshift(newEntry);
+        entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+        saveData();
+        
+        document.getElementById('input-shrine').value = '';
+        document.getElementById('input-note').value = '';
+        
+        switchTab('history');
+    }
+
+    function deleteEntry(id) {
+        if(confirm('本当に消すよ？')) {
+            entries = entries.filter(e => e.id !== id);
+            saveData();
+        }
+    }
+    
+    function clearAllData() {
+        if(confirm('全部消えるよ！本当によい？')) {
+            entries = [];
+            saveData();
+            alert('まっさらにしました');
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('entry-count').textContent = entries.length;
+        updateInputCandidates();
+        const listEl = document.getElementById('history-list');
+        listEl.innerHTML = '';
+
+        if (entries.length === 0) {
+            listEl.innerHTML = '<div style="text-align:center; padding:40px; font-size:14px; color:var(--text-sub);">まだ何もないよ！<br>記録タブから追加してね</div>';
+            return;
+        }
+
+        entries.forEach(entry => {
+            const cssClass = getRankClass(entry.result);
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            
+            item.innerHTML = `
+                <div class="history-top">
+                    <div class="history-content history-info" style="flex:1;">
+                        <h3>${entry.shrine}</h3>
+                        <div class="date">📅 ${entry.date}</div>
+                        <div class="person-tag">👤 ${entry.name || '自分'}</div>
+                    </div>
+                    <div class="fortune-badge ${cssClass}">
+                        ${entry.result}
+                    </div>
+                </div>
+                ${entry.note ? `<div class="history-content"><div class="note" style="font-size:13px; margin-top:8px;">📝 ${entry.note}</div></div>` : ''}
+                <div style="text-align:right;">
+                    <button class="delete-btn" onclick="deleteEntry(${entry.id})">削除</button>
+                </div>
+            `;
+            listEl.appendChild(item);
+        });
+    }
+
+    function getRankClass(result) {
+        switch(result) {
+            case '大吉': return 'rank-dai-kichi';
+            case '吉': return 'rank-kichi';
+            case '中吉': return 'rank-chu-kichi';
+            case '小吉': return 'rank-sho-kichi';
+            case '末吉': return 'rank-sue-kichi';
+            case '凶': return 'rank-kyo';
+            case '大凶': return 'rank-dai-kyo';
+            default: return '';
+        }
+    }
+
+    function updatePersonFilter() {
+        const filterSelect = document.getElementById('filter-person');
+        const currentVal = filterSelect.value;
+        while(filterSelect.options.length > 1) {
+            filterSelect.remove(1);
+        }
+        const names = [...new Set(entries.map(e => e.name))];
+        names.sort();
+        names.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            filterSelect.appendChild(option);
+        });
+        if(names.includes(currentVal)) {
+            filterSelect.value = currentVal;
+        } else {
+            filterSelect.value = "ALL";
+        }
+    }
+
+    function updateChart() {
+        const start = new Date(document.getElementById('filter-start').value);
+        const end = new Date(document.getElementById('filter-end').value);
+        end.setHours(23,59,59);
+        const selectedPerson = document.getElementById('filter-person').value;
+        
+        // フィルタリング
+        let filtered = entries.filter(e => {
+            const d = new Date(e.date);
+            return d >= start && d <= end;
+        });
+        if (selectedPerson !== "ALL") {
+            filtered = filtered.filter(e => e.name === selectedPerson);
+        }
+
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const textColor = isDark ? '#FFFFFF' : '#000000';
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        if (myChart) myChart.destroy();
+
+        if (currentChartType === 'luck') {
+            // --- 運勢チャート (Luck Chart) ---
+            const luckOrder = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
+            let datasets = [];
+            const persons = selectedPerson === "ALL" 
+                ? [...new Set(filtered.map(e => e.name))] 
+                : [selectedPerson];
+            const colors = ['#007AFF', '#FF3B30', '#34C759', '#FF9500', '#AF52DE', '#5856D6', '#FF2D55', '#8E8E93'];
+
+            persons.forEach((person, index) => {
+                const counts = luckOrder.map(luck => {
+                    return filtered.filter(e => e.name === person && e.result === luck).length;
+                });
+                datasets.push({
+                    label: person,
+                    data: counts,
+                    backgroundColor: colors[index % colors.length],
+                    borderColor: 'rgba(255,255,255,0.5)',
+                    borderWidth: 1,
+                    barPercentage: 0.7,
+                });
+            });
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: luckOrder, datasets: datasets },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            ticks: { color: textColor, font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 },
+                            grid: { color: isDark ? '#333' : '#ddd' }
+                        },
+                        y: {
+                            stacked: true,
+                            ticks: { color: textColor, font: {size: 12, weight:'bold'} },
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: textColor, font: { size: 12, weight: 'bold' }, boxWidth: 12 } },
+                    }
+                }
+            });
+
+        } else {
+            // --- 神社チャート (Shrine Chart) ---
+            // 神社ごとのカウントを集計
+            const shrineCounts = {};
+            filtered.forEach(e => {
+                shrineCounts[e.shrine] = (shrineCounts[e.shrine] || 0) + 1;
+            });
+            
+            // カウント順にソート
+            const sortedShrines = Object.keys(shrineCounts).sort((a,b) => shrineCounts[b] - shrineCounts[a]);
+            const counts = sortedShrines.map(s => shrineCounts[s]);
+
+            // 上位10件くらいに絞る？いや、全部出す
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: { 
+                    labels: sortedShrines, 
+                    datasets: [{
+                        label: '参拝回数',
+                        data: counts,
+                        backgroundColor: '#FF3B30', /* 神社っぽい赤 */
+                        borderRadius: 4,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: { color: textColor, font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 },
+                            grid: { color: isDark ? '#333' : '#ddd' }
+                        },
+                        y: {
+                            ticks: { color: textColor, font: {size: 12, weight:'bold'} },
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('analysis-summary').textContent = `対象データの記録: ${filtered.length}件`;
+    }
+
+    function exportData() {
+        if(entries.length === 0) return alert('空っぽだよ');
+        const blob = new Blob([JSON.stringify(entries, null, 2)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `omikuji_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function triggerImport() { document.getElementById('file-import').click(); }
+
+    function importData(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (Array.isArray(imported)) {
+                    if(confirm(`上書きして読み込む？ (${imported.length}件)`)) {
+                        entries = imported;
+                        saveData();
+                        alert('復元完了！');
+                    }
+                }
+            } catch (err) { alert('読み込めなかった...'); }
+        };
+        reader.readAsText(file);
+        input.value = '';
+    }
+</script>
+
+</body>
+</html>
