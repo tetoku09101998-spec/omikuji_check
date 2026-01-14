@@ -72,6 +72,16 @@
         }
 
         h1 { font-size: 17px; margin: 0; font-weight: 700; }
+        
+        .version-badge {
+            font-size: 10px;
+            background: var(--input-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--text-sub);
+            margin-left: 8px;
+            vertical-align: middle;
+        }
 
         .container { width: 100%; padding: 0; }
 
@@ -386,7 +396,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ</h1>
+    <h1>⛩️ おみくじ<span class="version-badge">ver 2.0</span></h1>
     <button class="theme-toggle" onclick="toggleTheme()">🌗 切替</button>
 </header>
 
@@ -637,7 +647,7 @@
         renderBadges();
     }
 
-    // --- ここで入力候補の更新ロジックを復活！ ---
+    // --- 入力候補更新 ---
     function updateInputCandidates() {
         const uniqueNames = [...new Set(entries.map(e => e.name))].sort();
         const nameListEl = document.getElementById('name-list');
@@ -850,7 +860,7 @@
     
     function updateUI() {
         document.getElementById('entry-count').textContent = entries.length;
-        updateInputCandidates(); // ★ここが重要！リスト更新の呼び出しを追加
+        updateInputCandidates(); 
         const listEl = document.getElementById('history-list');
         listEl.innerHTML = '';
         if (entries.length === 0) listEl.innerHTML = '<div style="text-align:center; padding:40px; font-size:14px; color:var(--text-sub);">まだ何もないよ！<br>記録タブから追加してね</div>';
