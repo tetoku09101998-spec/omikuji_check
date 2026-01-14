@@ -102,6 +102,7 @@
             margin-bottom: 6px;
         }
 
+        /* 入力欄：プルダウン修正 */
         input[type="text"],
         input[type="date"],
         select,
@@ -116,24 +117,25 @@
             background: var(--input-bg);
             color: var(--text);
             outline: none;
+            /* ブラウザ標準のスタイルを尊重しつつ調整 */
             -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        /* セレクトボックス専用（矢印増殖防止） */
+        select {
+            /* 矢印アイコンを画像で出すのをやめて、シンプルにする */
+            padding-right: 30px;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 14px;
         }
 
         input:focus, select:focus, textarea:focus {
             border-color: var(--primary);
             background: var(--card-bg);
-        }
-
-        input::-webkit-calendar-picker-indicator { opacity: 0; }
-
-        select {
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 16px;
-        }
-        [data-theme="dark"] select {
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
         }
 
         button.btn-primary {
@@ -229,22 +231,10 @@
             position: relative;
             cursor: pointer; 
         }
-        .cal-day.has-entry {
-            background-color: rgba(0, 122, 255, 0.05); 
-        }
-        .cal-day.has-entry:active {
-            background-color: rgba(0, 122, 255, 0.2);
-        }
-        .cal-day.today {
-            border-color: var(--primary);
-            background: rgba(0,122,255,0.1);
-        }
-        .cal-mark {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-top: 2px;
-        }
+        .cal-day.has-entry { background-color: rgba(0, 122, 255, 0.05); }
+        .cal-day.has-entry:active { background-color: rgba(0, 122, 255, 0.2); }
+        .cal-day.today { border-color: var(--primary); background: rgba(0,122,255,0.1); }
+        .cal-mark { width: 8px; height: 8px; border-radius: 50%; margin-top: 2px; }
         .mark-dai-kichi { background: #FF3B30; }
         .mark-kichi { background: #FF9500; }
         .mark-kyo { background: #5856D6; }
@@ -266,10 +256,7 @@
             transition: opacity 0.2s, visibility 0.2s;
             backdrop-filter: blur(2px);
         }
-        .modal-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
         .modal-content {
             background: var(--card-bg);
             width: 85%;
@@ -290,74 +277,21 @@
             border-bottom: 1px solid var(--input-border);
             padding-bottom: 10px;
         }
-        .modal-title {
-            font-size: 18px;
-            font-weight: 700;
-        }
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: var(--text-sub);
-            cursor: pointer;
-            padding: 0 8px;
-        }
-        .modal-entry {
-            background: var(--bg);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
-            border: 1px solid var(--input-border);
-        }
+        .modal-title { font-size: 18px; font-weight: 700; }
+        .modal-close { background: none; border: none; font-size: 24px; color: var(--text-sub); cursor: pointer; padding: 0 8px; }
+        .modal-entry { background: var(--bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--input-border); }
 
         /* 称号リスト */
-        .badge-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 12px;
-            padding: 10px;
-        }
-        .badge-item {
-            background: var(--card-bg);
-            border: 2px solid var(--input-border);
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            opacity: 0.5;
-            filter: grayscale(100%);
-            transition: all 0.3s;
-        }
-        .badge-item.unlocked {
-            opacity: 1;
-            filter: grayscale(0%);
-            border-color: var(--gold);
-            box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
-            background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,215,0,0.1) 100%);
-        }
-        .badge-item.master-rank.unlocked {
-            border-color: #FF3B30;
-            background: linear-gradient(135deg, #fffcf0 0%, #fff 100%);
-            box-shadow: 0 0 15px rgba(255, 59, 48, 0.5);
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
-            100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-        }
+        .badge-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; padding: 10px; }
+        .badge-item { background: var(--card-bg); border: 2px solid var(--input-border); border-radius: 12px; padding: 12px; text-align: center; opacity: 0.5; filter: grayscale(100%); transition: all 0.3s; }
+        .badge-item.unlocked { opacity: 1; filter: grayscale(0%); border-color: var(--gold); box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3); background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,215,0,0.1) 100%); }
+        .badge-item.master-rank.unlocked { border-color: #FF3B30; background: linear-gradient(135deg, #fffcf0 0%, #fff 100%); box-shadow: 0 0 15px rgba(255, 59, 48, 0.5); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); } 50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); } 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); } }
         .badge-icon { font-size: 32px; margin-bottom: 4px; display:block;}
         .badge-name { font-size: 12px; font-weight: bold; display: block; line-height:1.2; }
         .badge-desc { font-size: 10px; color: var(--text-sub); display: block; margin-top:4px;}
 
-        #rokuyo-display {
-            font-size: 14px;
-            font-weight: bold;
-            color: var(--text-sub);
-            margin-left: 10px;
-            padding: 2px 8px;
-            border-radius: 4px;
-            background: var(--input-bg);
-        }
+        #rokuyo-display { font-size: 14px; font-weight: bold; color: var(--text-sub); margin-left: 10px; padding: 2px 8px; border-radius: 4px; background: var(--input-bg); }
         .rokuyo-taian { color: #FF3B30; background: #FFEBEE; }
         .rokuyo-butsumetsu { color: var(--text); background: #EEEEEE; }
 
@@ -396,7 +330,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ<span class="version-badge">ver 2.0</span></h1>
+    <h1>⛩️ おみくじ<span class="version-badge">ver 2.1</span></h1>
     <button class="theme-toggle" onclick="toggleTheme()">🌗 切替</button>
 </header>
 
@@ -504,8 +438,7 @@
     <div id="tab-collection" class="hidden">
         <div class="card">
             <h2 style="font-size:16px; margin-bottom:12px;">🏆 獲得バッジ</h2>
-            <div id="badge-container" class="badge-list">
-                </div>
+            <div id="badge-container" class="badge-list"></div>
         </div>
     </div>
 
@@ -534,8 +467,7 @@
             <div class="modal-title" id="modal-date">2026/01/01</div>
             <button class="modal-close" onclick="closeModal()">×</button>
         </div>
-        <div id="modal-body">
-            </div>
+        <div id="modal-body"></div>
     </div>
 </div>
 
@@ -589,11 +521,8 @@
 
     window.onload = () => {
         const savedTheme = localStorage.getItem(THEME_KEY);
-        if (savedTheme) {
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        }
+        if (savedTheme) { document.documentElement.setAttribute('data-theme', savedTheme); }
+        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { document.documentElement.setAttribute('data-theme', 'dark'); }
 
         document.getElementById('input-date').valueAsDate = new Date();
         const lastName = localStorage.getItem(LAST_NAME_KEY);
@@ -601,7 +530,6 @@
         else document.getElementById('input-name').value = '自分';
 
         loadData();
-
         const today = new Date();
         const firstDay = new Date(today.getFullYear(), 0, 1);
         document.getElementById('filter-start').valueAsDate = firstDay;
@@ -617,20 +545,20 @@
         const next = current === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
         localStorage.setItem(THEME_KEY, next);
+        if(myChart) updateChart(); 
     }
 
     function switchTab(tabName) {
         document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
         document.getElementById('tab-' + tabName).classList.remove('hidden');
-
         document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
         const tabMap = {'input':0, 'history':1, 'analysis':2, 'collection':3, 'settings':4};
         const tabs = document.querySelectorAll('.tab');
         if(tabMap[tabName] !== undefined) tabs[tabMap[tabName]].classList.add('active');
 
         if(tabName === 'analysis') { updatePersonFilter(); updateChart(); }
-        if(tabName === 'collection') { renderBadges(); }
-        if(tabName === 'history') { renderCalendar(); }
+        if(tabName === 'collection') renderBadges();
+        if(tabName === 'history') renderCalendar();
     }
 
     function loadData() {
@@ -647,7 +575,6 @@
         renderBadges();
     }
 
-    // --- 入力候補更新 ---
     function updateInputCandidates() {
         const uniqueNames = [...new Set(entries.map(e => e.name))].sort();
         const nameListEl = document.getElementById('name-list');
@@ -671,15 +598,13 @@
     function getRokuyo(dateStr) {
         const date = new Date(dateStr);
         const baseDate = new Date(2000, 0, 6);
-        const diffTime = date.getTime() - baseDate.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const diffDays = Math.floor((date.getTime() - baseDate.getTime()) / (1000 * 60 * 60 * 24));
         const moonCycle = 29.53059;
         const moonAge = (diffDays % moonCycle + moonCycle) % moonCycle; 
         const lunarDay = Math.floor(moonAge) + 1;
         const lunarMonth = date.getMonth() + 1; 
-        const rokuyoIndex = (lunarMonth + lunarDay) % 6;
         const rokuyoOrder = ['大安', '赤口', '先勝', '友引', '先負', '仏滅']; 
-        return rokuyoOrder[rokuyoIndex];
+        return rokuyoOrder[(lunarMonth + lunarDay) % 6];
     }
 
     function updateRokuyoDisplay() {
@@ -698,11 +623,8 @@
         const uniqueDates = [...new Set(data.map(e => e.date))].sort();
         let consecutive = 1;
         for(let i=1; i<uniqueDates.length; i++) {
-            const prev = new Date(uniqueDates[i-1]);
-            const curr = new Date(uniqueDates[i]);
-            const diff = (curr - prev) / (1000*60*60*24);
-            if(diff === 1) consecutive++;
-            else consecutive = 1;
+            const diff = (new Date(uniqueDates[i]) - new Date(uniqueDates[i-1])) / (1000*60*60*24);
+            if(diff === 1) consecutive++; else consecutive = 1;
             if(consecutive >= days) return true;
         }
         return false;
@@ -717,57 +639,33 @@
             let classes = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
             if (badge.id === 'master_of_omikuji') classes += ' master-rank';
             div.className = classes;
-            div.innerHTML = `
-                <span class="badge-icon">${badge.icon}</span>
-                <span class="badge-name">${badge.name}</span>
-                <span class="badge-desc">${badge.desc}</span>
-            `;
+            div.innerHTML = `<span class="badge-icon">${badge.icon}</span><span class="badge-name">${badge.name}</span><span class="badge-desc">${badge.desc}</span>`;
             container.appendChild(div);
         });
     }
 
     function switchHistoryView(view) {
-        document.getElementById('view-list-btn').classList.remove('active');
-        document.getElementById('view-cal-btn').classList.remove('active');
-        document.getElementById('history-list-view').classList.add('hidden');
-        document.getElementById('history-cal-view').classList.add('hidden');
-
-        if(view === 'list') {
-            document.getElementById('view-list-btn').classList.add('active');
-            document.getElementById('history-list-view').classList.remove('hidden');
-        } else {
-            document.getElementById('view-cal-btn').classList.add('active');
-            document.getElementById('history-cal-view').classList.remove('hidden');
-            renderCalendar();
-        }
+        document.getElementById('view-list-btn').classList.toggle('active', view === 'list');
+        document.getElementById('view-cal-btn').classList.toggle('active', view === 'calendar');
+        document.getElementById('history-list-view').classList.toggle('hidden', view !== 'list');
+        document.getElementById('history-cal-view').classList.toggle('hidden', view !== 'calendar');
+        if(view === 'calendar') renderCalendar();
     }
 
-    function changeCalMonth(delta) {
-        currentCalDate.setMonth(currentCalDate.getMonth() + delta);
-        renderCalendar();
-    }
+    function changeCalMonth(delta) { currentCalDate.setMonth(currentCalDate.getMonth() + delta); renderCalendar(); }
 
     function renderCalendar() {
         const year = currentCalDate.getFullYear();
         const month = currentCalDate.getMonth();
         document.getElementById('cal-month-label').textContent = `${year}年${month+1}月`;
-
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month+1, 0);
-        const startDayOfWeek = firstDay.getDay(); 
-        const endDate = lastDay.getDate();
-
+        const firstDay = new Date(year, month, 1).getDay(); 
+        const endDate = new Date(year, month+1, 0).getDate();
         const container = document.getElementById('calendar-body');
         container.innerHTML = '';
-
-        for(let i=0; i<startDayOfWeek; i++) {
-            container.appendChild(createCalCell(''));
-        }
-
+        for(let i=0; i<firstDay; i++) container.appendChild(createCalCell(''));
         for(let d=1; d<=endDate; d++) {
             const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            const dayEntries = entries.filter(e => e.date === dateStr);
-            container.appendChild(createCalCell(d, dayEntries, dateStr));
+            container.appendChild(createCalCell(d, entries.filter(e => e.date === dateStr), dateStr));
         }
     }
 
@@ -775,17 +673,12 @@
         const div = document.createElement('div');
         div.className = 'cal-day';
         if(!day) return div;
-
-        const todayStr = new Date().toISOString().split('T')[0];
-        if(dateStr === todayStr) div.classList.add('today');
-        
+        if(dateStr === new Date().toISOString().split('T')[0]) div.classList.add('today');
         if(dayEntries.length > 0) {
             div.classList.add('has-entry');
             div.onclick = () => openDayModal(dateStr); 
         }
-
         div.innerHTML = `<span>${day}</span>`;
-
         dayEntries.forEach(e => {
             const mark = document.createElement('div');
             mark.className = 'cal-mark';
@@ -800,141 +693,97 @@
     function openDayModal(dateStr) {
         const dayEntries = entries.filter(e => e.date === dateStr);
         if (dayEntries.length === 0) return;
-
         const modalBody = document.getElementById('modal-body');
         modalBody.innerHTML = '';
-        
         document.getElementById('modal-date').textContent = dateStr;
-
         dayEntries.forEach(entry => {
             const cssClass = getRankClass(entry.result);
             const div = document.createElement('div');
             div.className = 'modal-entry';
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div>
-                        <div style="font-weight:bold; font-size:16px;">${entry.shrine}</div>
-                        <div style="font-size:12px; color:var(--text-sub); margin-top:2px;">👤 ${entry.name || '自分'}</div>
-                    </div>
-                    <div class="fortune-badge ${cssClass}">${entry.result}</div>
-                </div>
-                ${entry.note ? `<div style="margin-top:10px; font-size:14px; background:var(--card-bg); padding:8px; border-radius:6px;">${entry.note}</div>` : ''}
-            `;
+            div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><div style="font-weight:bold; font-size:16px;">${entry.shrine}</div><div style="font-size:12px; color:var(--text-sub); margin-top:2px;">👤 ${entry.name || '自分'}</div></div><div class="fortune-badge ${cssClass}">${entry.result}</div></div>${entry.note ? `<div style="margin-top:10px; font-size:14px; background:var(--card-bg); padding:8px; border-radius:6px;">${entry.note}</div>` : ''}`;
             modalBody.appendChild(div);
         });
-
         document.getElementById('day-modal').classList.add('show');
     }
-
-    function closeModal() {
-        document.getElementById('day-modal').classList.remove('show');
-    }
+    function closeModal() { document.getElementById('day-modal').classList.remove('show'); }
 
     function addEntry() {
         const nameInput = document.getElementById('input-name').value.trim();
-        const dateInput = document.getElementById('input-date').value;
-        const shrineInput = document.getElementById('input-shrine').value;
-        const resultInput = document.getElementById('input-result').value;
-        const noteInput = document.getElementById('input-note').value;
-        if (!shrineInput) return alert('神社名を入れて！');
-        if (!nameInput) return alert('名前を入れて！');
+        const shrineInput = document.getElementById('input-shrine').value.trim();
+        if (!shrineInput || !nameInput) return alert('名前と神社名を入れて！');
         localStorage.setItem(LAST_NAME_KEY, nameInput);
-        const newEntry = { id: Date.now(), name: nameInput, date: dateInput || new Date().toISOString().split('T')[0], shrine: shrineInput, result: resultInput, note: noteInput };
-        entries.unshift(newEntry);
+        entries.unshift({ id: Date.now(), name: nameInput, date: document.getElementById('input-date').value || new Date().toISOString().split('T')[0], shrine: shrineInput, result: document.getElementById('input-result').value, note: document.getElementById('input-note').value });
         entries.sort((a, b) => new Date(b.date) - new Date(a.date));
         saveData();
-        document.getElementById('input-shrine').value = '';
-        document.getElementById('input-note').value = '';
+        document.getElementById('input-shrine').value = ''; document.getElementById('input-note').value = '';
         switchTab('history');
     }
+
     function deleteEntry(id) { if(confirm('本当に消すよ？')) { entries = entries.filter(e => e.id !== id); saveData(); } }
+
     function shareEntry(id) {
-        const entry = entries.find(e => e.id === id);
-        if (!entry) return;
-        const shareText = `📅 ${entry.date}\n⛩️ ${entry.shrine}で【${entry.result}】を引きました！\n\n#おみくじ管理 #運勢`;
-        const shareUrl = window.location.href; 
-        if (navigator.share) navigator.share({ title: 'おみくじ結果', text: shareText, url: shareUrl }).catch(console.error);
-        else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+        const e = entries.find(e => e.id === id);
+        if (!e) return;
+        const text = `📅 ${e.date}\n⛩️ ${e.shrine}で【${e.result}】を引きました！\n\n#おみくじ管理 #運勢`;
+        if (navigator.share) navigator.share({ title: 'おみくじ結果', text: text, url: window.location.href }).catch(console.error);
+        else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`, '_blank');
     }
+
     function clearAllData() { if(confirm('全部消えるよ！本当によい？')) { entries = []; saveData(); alert('まっさらにしました'); } }
-    
+
     function updateUI() {
         document.getElementById('entry-count').textContent = entries.length;
-        updateInputCandidates(); 
+        updateInputCandidates();
         const listEl = document.getElementById('history-list');
         listEl.innerHTML = '';
-        if (entries.length === 0) listEl.innerHTML = '<div style="text-align:center; padding:40px; font-size:14px; color:var(--text-sub);">まだ何もないよ！<br>記録タブから追加してね</div>';
-        entries.forEach(entry => {
-            const cssClass = getRankClass(entry.result);
+        if (entries.length === 0) listEl.innerHTML = '<div style="text-align:center; padding:40px; font-size:14px; color:var(--text-sub);">記録がありません</div>';
+        entries.forEach(e => {
             const item = document.createElement('div');
             item.className = 'history-item';
-            item.innerHTML = `
-                <div class="history-top">
-                    <div class="history-content history-info" style="flex:1;">
-                        <h3>${entry.shrine}</h3>
-                        <div class="date">📅 ${entry.date}</div>
-                        <div class="person-tag">👤 ${entry.name || '自分'}</div>
-                    </div>
-                    <div class="fortune-badge ${cssClass}">${entry.result}</div>
-                </div>
-                ${entry.note ? `<div class="history-content"><div class="note" style="font-size:13px; margin-top:8px;">📝 ${entry.note}</div></div>` : ''}
-                <div class="action-row">
-                    <button class="action-btn share-btn" onclick="shareEntry(${entry.id})">📤 シェア</button>
-                    <button class="action-btn delete-btn" onclick="deleteEntry(${entry.id})">🗑️ 削除</button>
-                </div>
-            `;
+            item.innerHTML = `<div class="history-top"><div class="history-content history-info" style="flex:1;"><h3>${e.shrine}</h3><div class="date">📅 ${e.date}</div><div class="person-tag">👤 ${e.name || '自分'}</div></div><div class="fortune-badge ${getRankClass(e.result)}">${e.result}</div></div>${e.note ? `<div class="history-content"><div class="note" style="font-size:13px; margin-top:8px;">📝 ${e.note}</div></div>` : ''}<div class="action-row"><button class="action-btn share-btn" onclick="shareEntry(${e.id})">📤 シェア</button><button class="action-btn delete-btn" onclick="deleteEntry(${e.id})">🗑️ 削除</button></div>`;
             listEl.appendChild(item);
         });
     }
-    function getRankClass(result) { switch(result) { case '大吉': return 'rank-dai-kichi'; case '吉': return 'rank-kichi'; default: return 'rank-kichi'; } }
+
+    function getRankClass(r) { switch(r) { case '大吉': return 'rank-dai-kichi'; case '吉': return 'rank-kichi'; case '中吉': return 'rank-chu-kichi'; case '小吉': return 'rank-sho-kichi'; case '末吉': return 'rank-sue-kichi'; case '凶': return 'rank-kyo'; case '大凶': return 'rank-dai-kyo'; default: return ''; } }
+
     function updatePersonFilter() {
-        const filterSelect = document.getElementById('filter-person');
-        const currentVal = filterSelect.value;
-        while(filterSelect.options.length > 1) filterSelect.remove(1);
+        const filter = document.getElementById('filter-person');
+        const val = filter.value;
+        while(filter.options.length > 1) filter.remove(1);
         const names = [...new Set(entries.map(e => e.name))].sort();
-        names.forEach(name => { const option = document.createElement('option'); option.value = name; option.textContent = name; filterSelect.appendChild(option); });
-        if(names.includes(currentVal)) filterSelect.value = currentVal; else filterSelect.value = "ALL";
+        names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; filter.appendChild(o); });
+        filter.value = names.includes(val) ? val : "ALL";
     }
-    function switchChartType(type) {
-        currentChartType = type;
-        document.getElementById('toggle-luck').classList.remove('active');
-        document.getElementById('toggle-shrine').classList.remove('active');
-        if (type === 'luck') document.getElementById('toggle-luck').classList.add('active'); else document.getElementById('toggle-shrine').classList.add('active');
-        updateChart();
-    }
+
+    function switchChartType(t) { currentChartType = t; document.getElementById('toggle-luck').classList.toggle('active', t === 'luck'); document.getElementById('toggle-shrine').classList.toggle('active', t === 'shrine'); updateChart(); }
+
     function updateChart() {
         const start = new Date(document.getElementById('filter-start').value);
         const end = new Date(document.getElementById('filter-end').value);
         end.setHours(23,59,59);
-        const selectedPerson = document.getElementById('filter-person').value;
+        const person = document.getElementById('filter-person').value;
         let filtered = entries.filter(e => { const d = new Date(e.date); return d >= start && d <= end; });
-        if (selectedPerson !== "ALL") filtered = filtered.filter(e => e.name === selectedPerson);
+        if (person !== "ALL") filtered = filtered.filter(e => e.name === person);
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const textColor = isDark ? '#FFFFFF' : '#000000';
         const ctx = document.getElementById('mainChart').getContext('2d');
         if (myChart) myChart.destroy();
         if (currentChartType === 'luck') {
-            const luckOrder = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
-            let datasets = [];
-            const persons = selectedPerson === "ALL" ? [...new Set(filtered.map(e => e.name))] : [selectedPerson];
+            const lucks = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
+            const persons = person === "ALL" ? [...new Set(filtered.map(e => e.name))] : [person];
             const colors = ['#007AFF', '#FF3B30', '#34C759', '#FF9500', '#AF52DE', '#5856D6', '#FF2D55', '#8E8E93'];
-            persons.forEach((person, index) => {
-                const counts = luckOrder.map(luck => filtered.filter(e => e.name === person && e.result === luck).length);
-                datasets.push({ label: person, data: counts, backgroundColor: colors[index % colors.length], borderColor: 'rgba(255,255,255,0.5)', borderWidth: 1, barPercentage: 0.7 });
-            });
-            myChart = new Chart(ctx, { type: 'bar', data: { labels: luckOrder, datasets: datasets }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, ticks: { color: textColor, font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { stacked: true, ticks: { color: textColor, font: {size: 12, weight:'bold'} }, grid: { display: false } } }, plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { size: 12, weight: 'bold' }, boxWidth: 12 } } } } });
+            myChart = new Chart(ctx, { type: 'bar', data: { labels: lucks, datasets: persons.map((p, i) => ({ label: p, data: lucks.map(l => filtered.filter(e => e.name === p && e.result === l).length), backgroundColor: colors[i % colors.length], borderColor: 'rgba(255,255,255,0.5)', borderWidth: 1, barPercentage: 0.7 })) }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, ticks: { color: isDark ? '#FFF' : '#000', font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { stacked: true, ticks: { color: isDark ? '#FFF' : '#000', font: {size: 12, weight:'bold'} }, grid: { display: false } } }, plugins: { legend: { position: 'bottom', labels: { color: isDark ? '#FFF' : '#000', font: { size: 12, weight: 'bold' }, boxWidth: 12 } } } } });
         } else {
-            const shrineCounts = {};
-            filtered.forEach(e => { shrineCounts[e.shrine] = (shrineCounts[e.shrine] || 0) + 1; });
-            const sortedShrines = Object.keys(shrineCounts).sort((a,b) => shrineCounts[b] - shrineCounts[a]);
-            const counts = sortedShrines.map(s => shrineCounts[s]);
-            myChart = new Chart(ctx, { type: 'bar', data: { labels: sortedShrines, datasets: [{ label: '参拝回数', data: counts, backgroundColor: '#FF3B30', borderRadius: 4, barPercentage: 0.6 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { color: textColor, font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { ticks: { color: textColor, font: {size: 12, weight:'bold'} }, grid: { display: false } } }, plugins: { legend: { display: false } } } });
+            const counts = {}; filtered.forEach(e => { counts[e.shrine] = (counts[e.shrine] || 0) + 1; });
+            const sorted = Object.keys(counts).sort((a,b) => counts[b] - counts[a]);
+            myChart = new Chart(ctx, { type: 'bar', data: { labels: sorted, datasets: [{ label: '参拝回数', data: sorted.map(s => counts[s]), backgroundColor: '#FF3B30', borderRadius: 4, barPercentage: 0.6 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { color: isDark ? '#FFF' : '#000', font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { ticks: { color: isDark ? '#FFF' : '#000', font: {size: 12, weight:'bold'} }, grid: { display: false } } }, plugins: { legend: { display: false } } } });
         }
-        document.getElementById('analysis-summary').textContent = `対象データの記録: ${filtered.length}件`;
+        document.getElementById('analysis-summary').textContent = `対象データ: ${filtered.length}件`;
     }
-    function exportData() { if(entries.length === 0) return alert('空っぽだよ'); const blob = new Blob([JSON.stringify(entries, null, 2)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `omikuji_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); }
+
+    function exportData() { if(entries.length === 0) return alert('データがありません'); const blob = new Blob([JSON.stringify(entries, null, 2)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `omikuji_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); }
     function triggerImport() { document.getElementById('file-import').click(); }
-    function importData(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const imported = JSON.parse(e.target.result); if (Array.isArray(imported)) { if(confirm('上書きして読み込む？')) { entries = imported; saveData(); alert('復元完了！'); } } } catch (err) { alert('読み込めなかった...'); } }; reader.readAsText(file); input.value = ''; }
+    function importData(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const data = JSON.parse(e.target.result); if (Array.isArray(data)) { if(confirm('上書きしますか？')) { entries = data; saveData(); alert('復元完了！'); } } } catch (err) { alert('形式が正しくありません'); } }; reader.readAsText(file); input.value = ''; }
 </script>
 
 </body>
