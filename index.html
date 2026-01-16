@@ -378,7 +378,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ<span class="version-badge">ver 3.8</span></h1>
+    <h1>⛩️ おみくじ<span class="version-badge">ver 3.9</span></h1>
     <button class="theme-toggle" onclick="toggleTheme()">🌗 切替</button>
 </header>
 
@@ -538,12 +538,15 @@
                 <button class="btn-primary" style="width:100%; margin:0;" onclick="shareGoshuin()">📱 シェア（画像付）</button>
                 
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-small btn-x" style="flex:1;" onclick="postToX()">✖ Xに投稿</button>
-                    <button class="btn-small" style="flex:1;" onclick="downloadGoshuin()">💾 保存</button>
+                    <button class="btn-small" style="flex:1;" onclick="copyTextToClipboard()">📋 文章コピー</button>
+                    <button class="btn-small btn-x" style="flex:1;" onclick="postToX()">✖ Xを開く</button>
                 </div>
-                <button class="btn-small" style="width:100%;" onclick="redrawGoshuin()">🔄 書き直し</button>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-small" style="flex:1;" onclick="downloadGoshuin()">💾 保存</button>
+                    <button class="btn-small" style="flex:1;" onclick="redrawGoshuin()">🔄 書き直し</button>
+                </div>
             </div>
-            <p style="font-size:11px; color:var(--text-sub); margin-top:5px;">※PCなど一部環境では画像付きシェアができません。<br>「保存」してから「Xに投稿」してください。</p>
+            <p style="font-size:11px; color:var(--text-sub); margin-top:5px;">※画像付きシェアができない場合は、<br>「保存」→「文章コピー」→「Xを開く」で投稿してください。</p>
         </div>
     </div>
 </div>
@@ -745,7 +748,6 @@
     }
 
     // --- シェア機能 ---
-    // 1. スマホ用（画像＋テキスト）
     async function shareGoshuin() {
         const canvas = document.getElementById('goshuin-canvas');
         if (!currentGoshuinEntry) return;
@@ -754,31 +756,43 @@
         canvas.toBlob(async (blob) => {
             if (!blob) return alert('画像の生成に失敗しました');
             const file = new File([blob], "omikuji_goshuin.png", { type: "image/png" });
+            const text = `📅 ${currentGoshuinEntry.date}\n⛩️ ${currentGoshuinEntry.shrine}で【${currentGoshuinEntry.result}】を引きました！\n#おみくじ管理 #御朱印`;
             
-            // Web Share APIがファイルをサポートしているか確認
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
                     await navigator.share({
                         title: 'おみくじ結果',
-                        text: `📅 ${currentGoshuinEntry.date}\n⛩️ ${currentGoshuinEntry.shrine}で【${currentGoshuinEntry.result}】を引きました！\n#おみくじ管理 #御朱印`,
+                        text: text,
                         files: [file]
                     });
                 } catch (err) {
                     console.log('Share canceled or failed', err);
                 }
             } else {
-                alert('このブラウザでは画像を直接シェアできません。\n「保存」してから「Xに投稿」してください。');
+                alert('このブラウザでは画像を直接シェアできません。\n「保存」→「文章コピー」→「Xに投稿」してください。');
             }
         });
     }
 
-    // 2. PC/フォールバック用（テキストのみX投稿）
     function postToX() {
         if (!currentGoshuinEntry) return;
+        // Xへの投稿（テキストのみ）
+        // リンクにはハッシュタグをつける
         const text = `📅 ${currentGoshuinEntry.date}\n⛩️ ${currentGoshuinEntry.shrine}で【${currentGoshuinEntry.result}】を引きました！\n\n#おみくじ管理 #御朱印`;
         const url = window.location.href; 
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
         window.open(twitterUrl, '_blank');
+    }
+
+    // 新機能: テキストコピー
+    function copyTextToClipboard() {
+        if (!currentGoshuinEntry) return;
+        const text = `📅 ${currentGoshuinEntry.date}\n⛩️ ${currentGoshuinEntry.shrine}で【${currentGoshuinEntry.result}】を引きました！\n\n#おみくじ管理 #御朱印`;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('文章をコピーしました！\nXを開いて画像を添付し、ペーストしてください。');
+        }).catch(err => {
+            alert('コピーに失敗しました');
+        });
     }
 
     function drawVerticalText(ctx, text, x, y, fontSize, lineHeight) {
