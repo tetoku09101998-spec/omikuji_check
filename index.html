@@ -16,7 +16,8 @@
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FF3B30'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E⛩️%3C/text%3E%3C/svg%3E">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&family=Shippori+Mincho:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
+
     <style>
         /* --- 配色設定 --- */
         :root {
@@ -35,6 +36,13 @@
             --radius: 12px;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* --- カスタムフォント読み込み --- */
+        /* ★重要：ファイル名を 'goshuin.ttf' に変更してアップロードすること！ */
+        @font-face {
+            font-family: 'GoshuinFont';
+            src: url('goshuin.ttf') format('truetype');
         }
 
         [data-theme="dark"] {
@@ -369,7 +377,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ<span class="version-badge">ver 3.5</span></h1>
+    <h1>⛩️ おみくじ<span class="version-badge">ver 3.7</span></h1>
     <button class="theme-toggle" onclick="toggleTheme()">🌗 切替</button>
 </header>
 
@@ -541,7 +549,7 @@
     let myChart = null;
     let currentChartType = 'luck';
     let currentCalDate = new Date(); 
-    let currentGoshuinEntry = null; // 現在表示中の御朱印データ
+    let currentGoshuinEntry = null; 
 
     // ランク定義: 1=Bronze🥉, 2=Silver🥈, 3=Gold🥇, 4=Platinum💎
     const BADGES = [
@@ -724,14 +732,21 @@
         });
     }
 
-    // --- 御朱印メーカー ---
+    // --- 御朱印メーカー (カスタムフォント対応版) ---
     function openGoshuinModal(id) {
         const entry = entries.find(e => e.id === id);
         if(!entry) return;
         currentGoshuinEntry = entry;
         document.getElementById('goshuin-modal').classList.add('show');
-        // フォント読み込み待ち：確実に読み込んでから描画
-        document.fonts.load('1em "Shippori Mincho"').then(() => drawGoshuin(entry));
+        
+        // フォント 'GoshuinFont' が読み込まれるのを待つ
+        // 念のため少し遅延させるか、ロード完了を検知する
+        document.fonts.load('1em "GoshuinFont"').then(() => {
+            drawGoshuin(entry);
+        }).catch(err => {
+            console.error('Font loading failed:', err);
+            drawGoshuin(entry); // 失敗しても描画はする
+        });
     }
 
     function redrawGoshuin() {
@@ -744,13 +759,10 @@
         let cursorY = y;
         for (let i = 0; i < text.length; i++) {
             const char = text[i];
-            
-            // 達筆化：重ね描きで太さを出す（擬似ボールド）
-            // 注意: fontに 'bold' を指定しない（Shippori Minchoは太字がないため）
-            ctx.lineWidth = 1;
-            ctx.strokeText(char, x, cursorY);
+            // カスタムフォントの場合、太字化(strokeText)はフォントのデザインを損なう可能性があるため
+            // まずは fillText のみで描画する。
+            // もし細すぎる場合は、ctx.lineWidth = 1; ctx.strokeText(...) を追加しても良い
             ctx.fillText(char, x, cursorY);
-            
             cursorY += lineHeight;
         }
     }
@@ -770,7 +782,8 @@
         ctx.lineWidth = 4;
         ctx.strokeRect(10, 10, width - 20, height - 20);
 
-        const fontBase = "'Shippori Mincho', serif"; // 達筆フォント（墨）
+        // ★ここでカスタムフォントを指定！
+        const fontBase = "'GoshuinFont', serif"; 
 
         // --- 中央：朱印（円） ---
         ctx.beginPath();
@@ -780,24 +793,24 @@
         ctx.stroke();
         
         ctx.fillStyle = "rgba(230, 0, 51, 0.15)";
-        ctx.font = `800 80px ${fontBase}`; // 朱印は太く
+        ctx.font = `80px ${fontBase}`; 
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("神璽", width/2, height/2 + 20);
 
         // --- 文字描画 ---
         ctx.fillStyle = "#111"; // 濃い墨色
-        ctx.strokeStyle = "#111"; // 輪郭線用
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
 
         // 1. 右側：奉拝
-        ctx.font = `800 30px ${fontBase}`;
+        ctx.font = `30px ${fontBase}`;
         drawVerticalText(ctx, "奉拝", width - 60, 60, 30, 35);
 
-        // 2. 中央：神社名（縦書き・大きく・純粋に）
+        // 2. 中央：神社名（縦書き・大きく）
         const shrineName = entry.shrine;
-        ctx.font = `800 50px ${fontBase}`; // サイズアップして迫力を出す
+        // フォントサイズを大きめに設定
+        ctx.font = `50px ${fontBase}`; 
         const centerX = width / 2;
         const totalHeight = shrineName.length * 55; 
         const startY = (height - totalHeight) / 2;
@@ -807,9 +820,7 @@
         // 3. 左側：日付（縦書き）
         const d = new Date(entry.date);
         const dateText = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
-        ctx.font = `800 20px ${fontBase}`;
-        // 輪郭線なしでスッキリと
-        ctx.lineWidth = 0; 
+        ctx.font = `20px ${fontBase}`;
         let cursorY = 100;
         for(let i=0; i<dateText.length; i++) {
             ctx.fillText(dateText[i], 60, cursorY);
@@ -830,7 +841,7 @@
         ctx.strokeRect(-35, -35, 70, 70);
         
         ctx.fillStyle = "#d60000";
-        ctx.font = `800 32px ${fontBase}`;
+        ctx.font = `32px ${fontBase}`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         
@@ -838,7 +849,7 @@
             ctx.fillText(resultText[0], 0, -15);
             ctx.fillText(resultText[1], 0, 15);
         } else {
-            ctx.font = `800 24px ${fontBase}`;
+            ctx.font = `24px ${fontBase}`;
             ctx.fillText(resultText, 0, 0);
         }
         ctx.restore();
