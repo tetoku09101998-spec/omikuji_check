@@ -29,7 +29,7 @@
             --safe-bottom: env(safe-area-inset-bottom);
         }
 
-        /* --- フォント設定: goshuin.ttf を使用 --- */
+        /* --- フォント設定 --- */
         @font-face {
             font-family: 'GoshuinFont';
             src: url('goshuin.ttf') format('truetype');
@@ -99,13 +99,20 @@
         .btn-goshuin { color: var(--primary); border-color: var(--primary); background: rgba(0,122,255,0.05); font-weight: bold; }
         .btn-delete { color: var(--danger); border-color: var(--danger); background: rgba(255,59,48,0.05); }
 
-        .badge-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; padding: 10px; }
-        .badge-item { background: var(--card-bg); border: 2px solid var(--input-border); border-radius: 12px; padding: 10px; text-align: center; opacity: 0.4; filter: grayscale(100%); }
-        .badge-item.unlocked { opacity: 1; filter: grayscale(0%); border-color: var(--bronze); }
-        .badge-rank-1.unlocked { border-color: var(--bronze); }
-        .badge-rank-2.unlocked { border-color: var(--silver); }
-        .badge-rank-3.unlocked { border-color: var(--gold); }
-        .badge-rank-4.unlocked { border-color: var(--primary); box-shadow: 0 0 8px var(--primary); animation: pulse 2s infinite; }
+        /* 分析タブ用トグル */
+        .chart-toggle-row { display: flex; gap: 10px; margin-bottom: 16px; }
+        .toggle-btn { flex: 1; padding: 10px; font-size: 14px; border: 1px solid var(--input-border); background: var(--bg); color: var(--text-sub); border-radius: 8px; cursor: pointer; font-weight: 700; text-align: center; }
+        .toggle-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .chart-container { position: relative; height: 350px; width: 100%; }
+
+        /* 称号リスト（レアリティ復旧） */
+        .badge-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; padding: 10px; }
+        .badge-item { background: var(--card-bg); border: 2px solid var(--input-border); border-radius: 12px; padding: 10px; text-align: center; opacity: 0.4; filter: grayscale(100%); position: relative; }
+        .badge-item.unlocked { opacity: 1; filter: grayscale(0%); background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,255,255,0.5) 100%); }
+        .badge-rank-1.unlocked { border-color: var(--bronze); box-shadow: 0 2px 5px rgba(205,127,50,0.3); }
+        .badge-rank-2.unlocked { border-color: var(--silver); box-shadow: 0 3px 8px rgba(192,192,192,0.4); }
+        .badge-rank-3.unlocked { border-color: var(--gold); box-shadow: 0 4px 10px rgba(255,215,0,0.5); }
+        .badge-rank-4.unlocked { border-color: var(--primary); box-shadow: 0 0 10px var(--primary); animation: pulse 2s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 5px var(--primary); } 50% { box-shadow: 0 0 15px var(--primary); } 100% { box-shadow: 0 0 5px var(--primary); } }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: none; justify-content: center; align-items: center; }
@@ -119,7 +126,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ<span class="version-badge">ver 4.1</span></h1>
+    <h1>⛩️ おみくじ<span class="version-badge">ver 4.2</span></h1>
     <button onclick="toggleTheme()" style="background:none; border:none; font-size:20px;">🌗</button>
 </header>
 
@@ -129,6 +136,7 @@
         <div class="tab" onclick="switchTab('history')">📜 履歴</div>
         <div class="tab" onclick="switchTab('analysis')">📊 分析</div>
         <div class="tab" onclick="switchTab('collection')">🏆 称号</div>
+        <div class="tab" onclick="switchTab('settings')">⚙️ 設定</div>
     </div>
 
     <div id="tab-input">
@@ -171,7 +179,21 @@
     </div>
 
     <div id="tab-analysis" class="hidden">
-        <div class="card"><canvas id="mainChart"></canvas></div>
+        <div class="card">
+            <h2 style="font-size:16px; margin-bottom:12px;">統計・分析</h2>
+            <div class="chart-toggle-row">
+                <div id="toggle-luck" class="toggle-btn active" onclick="switchChartType('luck')">🔮 運勢</div>
+                <div id="toggle-shrine" class="toggle-btn" onclick="switchChartType('shrine')">⛩️ 神社</div>
+            </div>
+            <div class="form-group">
+                <label>👥 表示対象</label>
+                <select id="filter-person" onchange="updateChart()">
+                    <option value="ALL">全員</option>
+                </select>
+            </div>
+            <div class="chart-container"><canvas id="mainChart"></canvas></div>
+            <p id="analysis-summary" style="text-align:center; margin-top:16px; font-size:14px; color:var(--text-sub);"></p>
+        </div>
     </div>
 
     <div id="tab-collection" class="hidden">
@@ -180,7 +202,11 @@
 
     <div id="tab-settings" class="hidden">
         <div class="card">
-            <button class="btn-primary" onclick="exportData()">📤 エクスポート</button>
+            <h2 style="font-size:16px;">データ管理</h2>
+            <button class="btn-primary" onclick="exportData()">📤 バックアップ保存 (DL)</button>
+            <br>
+            <button class="btn-primary" style="background:var(--silver); color:black;" onclick="triggerImport()">📥 復元 (読み込み)</button>
+            <input type="file" id="file-import" style="display:none" accept=".json" onchange="importData(this)">
             <br>
             <button class="btn-primary" style="background:var(--danger);" onclick="clearAllData()">⚠️ データ全消去</button>
         </div>
@@ -196,7 +222,6 @@
             <button class="btn-primary" style="width:auto; background:#34C759; margin:0;" onclick="shareImage()">📤 画像シェア</button>
             <button class="btn-small" onclick="redrawGoshuin()">🔄 再描画</button>
         </div>
-        <div style="font-size:10px; color:var(--text-sub); margin-top:8px;">※文字が出ない場合は「再描画」を押してね</div>
     </div>
 </div>
 
@@ -205,11 +230,10 @@
     let entries = [];
     let currentGoshuinEntry = null;
     let myChart = null;
+    let currentChartType = 'luck'; // 'luck' or 'shrine'
 
     // --- ★完全版：称号データリスト (全種復活) ---
     const BADGES = [
-        // ランク: 1=Bronze, 2=Silver, 3=Gold, 4=Platinum
-        // --- 基本 ---
         { id: 'f1', name: '初めの一歩', icon: '🐣', desc: '初めて記録した', rank: 1, check: (d) => d.length >= 1 },
         { id: 'f10', name: '参拝愛好家', icon: '🚶', desc: '記録が10回', rank: 1, check: (d) => d.length >= 10 },
         { id: 'f30', name: '神主見習い', icon: '⛩️', desc: '記録が30回', rank: 2, check: (d) => d.length >= 30 },
@@ -219,8 +243,6 @@
             const counts = {}; d.forEach(e => { const n = e.name || '自分'; counts[n] = (counts[n] || 0) + 1; });
             return Object.values(counts).some(c => c >= 100);
         }},
-
-        // --- 運勢 ---
         { id: 'l1', name: '小さな幸せ', icon: '✨', desc: '大吉を1回', rank: 1, check: (d) => d.some(e => e.result === '大吉') },
         { id: 'l5', name: '強運の持ち主', icon: '🌟', desc: '大吉を5回', rank: 2, check: (d) => d.filter(e => e.result === '大吉').length >= 5 },
         { id: 'l10', name: '大吉ハンター', icon: '👑', desc: '大吉を10回', rank: 3, check: (d) => d.filter(e => e.result === '大吉').length >= 10 },
@@ -234,7 +256,7 @@
         { id: 'bad2combo', name: '泣きっ面に蜂', icon: '☔', desc: '2連続で凶/大凶', rank: 1, check: (d) => hasConsecutiveResult(d, ['凶','大凶'], 2) },
         { id: 'vrecovery', name: '昇り調子', icon: '📈', desc: '大凶の直後に大吉', rank: 2, check: (d) => {
             if(d.length < 2) return false;
-            const s = [...d].sort((a,b)=>new Date(b.date)-new Date(a.date));
+            const s = [...d].sort((a,b)=>new Date(a.date)-new Date(b.date));
             for(let i=0; i<s.length-1; i++) if(s[i].result==='大凶' && s[i+1].result==='大吉') return true;
             return false;
         }},
@@ -253,8 +275,6 @@
             const my = new Set(d.map(e => e.result));
             return types.every(t => my.has(t));
         }},
-
-        // --- 時期・日付 ---
         { id: 'newyear', name: 'あけおめ！', icon: '🎍', desc: '三が日に参拝', rank: 2, check: (d) => d.some(e => { const dt = new Date(e.date); return dt.getMonth()===0 && dt.getDate()<=3; }) },
         { id: 'summer', name: '夏の思い出', icon: '🌻', desc: '8月に参拝', rank: 1, check: (d) => d.some(e => new Date(e.date).getMonth()===7) },
         { id: 'endyear', name: '年越し詣', icon: '🔔', desc: '大晦日に参拝', rank: 2, check: (d) => d.some(e => { const dt = new Date(e.date); return dt.getMonth()===11 && dt.getDate()===31; }) },
@@ -269,8 +289,6 @@
         }},
         { id: 'combo3', name: '三日坊主卒業', icon: '🔥', desc: '3日連続参拝', rank: 2, check: (d) => hasConsecutiveDays(d, 3) },
         { id: 'combo7', name: '習慣の鬼', icon: '👹', desc: '7日連続参拝', rank: 3, check: (d) => hasConsecutiveDays(d, 7) },
-        
-        // --- 場所・名前 ---
         { id: 'traveler', name: '神社巡り', icon: '🗺️', desc: '5箇所の神社', rank: 2, check: (d) => new Set(d.map(e => e.shrine)).size >= 5 },
         { id: 'explorer', name: '聖地開拓者', icon: '🧭', desc: '10箇所の神社', rank: 3, check: (d) => new Set(d.map(e => e.shrine)).size >= 10 },
         { id: 'single', name: '一途な想い', icon: '💘', desc: '同じ神社5連続', rank: 1, check: (d) => {
@@ -283,12 +301,9 @@
         { id: 's_ten', name: '学問の神様', icon: '📖', desc: '「天満宮」へ行く', rank: 1, check: (d) => d.some(e => e.shrine.includes('天満宮')) },
         { id: 's_inari', name: 'お稲荷さん', icon: '🦊', desc: '「稲荷」へ行く', rank: 1, check: (d) => d.some(e => e.shrine.includes('稲荷')) },
         { id: 's_hachi', name: '八幡宮の加護', icon: '⚔️', desc: '「八幡」へ行く', rank: 1, check: (d) => d.some(e => e.shrine.includes('八幡')) },
-
-        // --- その他 ---
         { id: 'writer', name: '文豪', icon: '🖋️', desc: '長いメモを書く', rank: 1, check: (d) => d.some(e => e.note && e.note.length >= 50) },
         { id: 'friend', name: '代筆者', icon: '✍️', desc: '自分以外を記録', rank: 1, check: (d) => d.some(e => e.name !== '自分') },
         { id: 'party', name: '賑やかな参拝', icon: '🎉', desc: '3人以上の名前', rank: 2, check: (d) => new Set(d.map(e => e.name)).size >= 3 },
-        
         { id: 'master', name: '御神籤の神', icon: '💎', desc: '他全称号獲得', rank: 4, check: (d) => { 
             const others = BADGES.filter(b => b.id !== 'master'); 
             return others.every(b => b.check(d)); 
@@ -309,7 +324,10 @@
         const tabs = document.querySelectorAll('.tab');
         const map = {'input':0, 'history':1, 'analysis':2, 'collection':3, 'settings':4};
         tabs[map[t]].classList.add('active');
-        if(t === 'analysis') updateChart();
+        if(t === 'analysis') {
+            updatePersonFilter(); // フィルタ更新
+            updateChart();
+        }
     }
 
     function addEntry() {
@@ -359,8 +377,6 @@
         // --- 履歴更新 ---
         const list = document.getElementById('history-list');
         list.innerHTML = '';
-        if(entries.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888;">まだ記録がないよ</div>';
-        
         entries.forEach(e => {
             const div = document.createElement('div');
             div.className = 'history-item';
@@ -417,10 +433,9 @@
         document.fonts.load(`1em "${fontName}"`).then(() => {
             drawGoshuin(currentGoshuinEntry);
         }).catch(() => {
-            console.log('Font load error or timeout, drawing anyway');
+            console.log('Font load fallback');
             drawGoshuin(currentGoshuinEntry);
         });
-        // 念のため即時描画も行う
         drawGoshuin(currentGoshuinEntry);
     }
 
@@ -436,7 +451,7 @@
         ctx.fillStyle = "#fffcf2"; ctx.fillRect(0,0,width,height);
         ctx.strokeStyle = "#e60033"; ctx.lineWidth = 4; ctx.strokeRect(10,10,width-20,height-20);
         
-        // フォント設定：読み込まれない場合は明朝体
+        // フォント設定
         const fontBase = "'GoshuinFont', 'Shippori Mincho', 'Hiragino Mincho ProN', serif";
 
         // 朱印
@@ -525,30 +540,128 @@
             const div = document.createElement('div');
             const unlocked = b.check(entries);
             div.className = `badge-item badge-rank-${b.rank} ${unlocked ? 'unlocked' : ''}`;
-            div.innerHTML = `<div style="font-size:28px;">${b.icon}</div><div style="font-size:10px; font-weight:bold; line-height:1.2;">${b.name}</div>`;
+            div.innerHTML = `<div style="font-size:28px;">${b.icon}</div><div style="font-size:10px; font-weight:bold; line-height:1.2;">${b.name}</div><div style="font-size:9px; margin-top:2px;">${b.desc}</div>`;
             c.appendChild(div);
         });
+    }
+
+    // --- 分析機能（完全復旧） ---
+    function switchChartType(type) {
+        currentChartType = type;
+        document.getElementById('toggle-luck').classList.remove('active');
+        document.getElementById('toggle-shrine').classList.remove('active');
+        if (type === 'luck') document.getElementById('toggle-luck').classList.add('active'); 
+        else document.getElementById('toggle-shrine').classList.add('active');
+        updateChart();
+    }
+
+    function updatePersonFilter() {
+        const sel = document.getElementById('filter-person');
+        const val = sel.value;
+        while(sel.options.length > 1) sel.remove(1);
+        const names = [...new Set(entries.map(e => e.name))].sort();
+        names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; sel.appendChild(o); });
+        if(names.includes(val)) sel.value = val;
     }
 
     function updateChart() {
         const ctx = document.getElementById('mainChart').getContext('2d');
         if (myChart) myChart.destroy();
-        const counts = {}; entries.forEach(e => { counts[e.result] = (counts[e.result] || 0) + 1; });
-        myChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#007AFF', '#5856D6', '#000'] }] },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
+
+        // フィルタリング
+        const person = document.getElementById('filter-person').value;
+        let filtered = entries;
+        if(person !== 'ALL') filtered = entries.filter(e => e.name === person);
+
+        // チャート生成
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const txtColor = isDark ? '#fff' : '#000';
+
+        if (currentChartType === 'luck') {
+            // 横棒グラフ（運勢）
+            const lucks = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
+            const counts = lucks.map(l => filtered.filter(e => e.result === l).length);
+            
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: lucks,
+                    datasets: [{
+                        label: '回数',
+                        data: counts,
+                        backgroundColor: ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#5AC8FA', '#5856D6', '#000'],
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // 横棒にする
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { color: txtColor, precision:0 } },
+                        y: { ticks: { color: txtColor, font:{weight:'bold'} } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        } else {
+            // 横棒グラフ（神社）
+            const sCounts = {}; filtered.forEach(e => { sCounts[e.shrine] = (sCounts[e.shrine] || 0) + 1; });
+            const sorted = Object.keys(sCounts).sort((a,b) => sCounts[b] - sCounts[a]).slice(0, 10); // Top 10
+            
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted,
+                    datasets: [{
+                        label: '参拝回数',
+                        data: sorted.map(s => sCounts[s]),
+                        backgroundColor: '#FF3B30',
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { ticks: { color: txtColor, precision:0 } },
+                        y: { ticks: { color: txtColor, font:{weight:'bold'} } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+        document.getElementById('analysis-summary').textContent = `対象データ: ${filtered.length}件`;
     }
 
+    // --- データ管理 ---
     function exportData() {
         const blob = new Blob([JSON.stringify(entries, null, 2)], {type: "application/json"});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `omikuji_backup.json`; a.click();
+    }
+    function triggerImport() { document.getElementById('file-import').click(); }
+    function importData(input) {
+        const file = input.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const d = JSON.parse(e.target.result);
+                if(Array.isArray(d)) {
+                    if(confirm('現在のデータを上書きして復元しますか？')) {
+                        entries = d; saveData(); alert('復元しました！');
+                    }
+                }
+            } catch(err) { alert('ファイルが壊れているか形式が違います'); }
+        };
+        reader.readAsText(file);
+        input.value = '';
     }
     function clearAllData() { if(confirm('本当に全部消す？')) { entries=[]; saveData(); } }
     function toggleTheme() {
         const c = document.documentElement.getAttribute('data-theme');
         document.documentElement.setAttribute('data-theme', c === 'dark' ? 'light' : 'dark');
+        updateChart();
     }
     function closeModal() { document.getElementById('goshuin-modal').classList.remove('show'); }
 </script>
