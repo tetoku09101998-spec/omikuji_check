@@ -14,14 +14,13 @@
     <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23F2F2F7'/%3E%3Cpath d='M20 25 H80 V35 H70 V85 H60 V35 H40 V85 H30 V35 H20 Z' fill='%23FF3B30'/%3E%3Cpath d='M15 15 Q50 10 85 15 V22 H15 Z' fill='%23FF3B30'/%3E%3Crect x='50' y='50' width='35' height='45' fill='%23CD853F' stroke='white' stroke-width='2'/%3E%3Crect x='62' y='38' width='10' height='20' fill='%23DEB887'/%3E%3Ctext x='67' y='80' font-size='24' text-anchor='middle' fill='white' font-family='serif' font-weight='bold'%3E籤%3C/text%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23F2F2F7'/%3E%3Cpath d='M20 25 H80 V35 H70 V85 H60 V35 H40 V85 H30 V35 H20 Z' fill='%23FF3B30'/%3E%3Cpath d='M15 15 Q50 10 85 15 V22 H15 Z' fill='%23FF3B30'/%3E%3Crect x='50' y='50' width='35' height='45' fill='%23CD853F' stroke='white' stroke-width='2'/%3E%3Crect x='62' y='38' width='10' height='20' fill='%23DEB887'/%3E%3Ctext x='67' y='80' font-size='24' text-anchor='middle' fill='white' font-family='serif' font-weight='bold'%3E籤%3C/text%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FF3B30'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E⛩️%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FF3B30'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E⛩️%3C/text%3E%3C/svg%3E">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 配色設定 --- */
         :root {
             --primary: #007AFF; --bg: #F2F2F7; --card-bg: #FFFFFF;
             --input-bg: #EFEFF4; --input-border: #C7C7CC;
@@ -29,9 +28,10 @@
             --gold: #FFD700; --silver: #C0C0C0; --bronze: #CD7F32;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
+            --header-height: 48px;
+            --tab-height: 48px;
         }
 
-        /* --- フォント設定 --- */
         @font-face {
             font-family: 'GoshuinFont';
             src: url('goshuin.ttf') format('truetype');
@@ -42,7 +42,7 @@
             --input-bg: #3A3A3C; --input-border: #636366; --text: #FFFFFF; --text-sub: #D1D1D6;
         }
 
-        /* --- ★修正: 全要素にborder-boxを適用してはみ出し防止 --- */
+        /* 全要素のボックスサイズ計算を統一（はみ出し防止の基本） */
         *, *::before, *::after {
             box-sizing: border-box;
         }
@@ -50,23 +50,48 @@
         body {
             font-family: 'Noto Sans JP', sans-serif; margin: 0; padding: 0;
             background-color: var(--bg); color: var(--text); font-size: 15px;
-            padding-top: var(--safe-top); padding-bottom: calc(80px + var(--safe-bottom));
+            /* 上部固定エリアの分だけ余白を空ける */
+            padding-top: calc(var(--safe-top) + var(--header-height) + var(--tab-height) + 10px);
+            padding-bottom: calc(80px + var(--safe-bottom));
             overscroll-behavior-y: none;
-            overflow-x: hidden; /* 横スクロール禁止 */
+            overflow-x: hidden;
         }
 
+        /* --- 完全固定ヘッダー --- */
         header {
-            background: var(--card-bg); padding: 12px 16px; position: sticky; top: 0;
-            z-index: 100; display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--input-border); height: 44px;
+            background: var(--card-bg); 
+            padding: 0 16px; 
+            position: fixed; /* 固定 */
+            top: 0; left: 0; width: 100%; 
+            z-index: 1000; 
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--input-border); 
+            height: calc(var(--header-height) + var(--safe-top));
+            padding-top: var(--safe-top);
         }
 
         h1 { font-size: 17px; margin: 0; font-weight: 700; }
         .version-badge { font-size: 10px; background: var(--input-bg); padding: 2px 6px; border-radius: 4px; color: var(--text-sub); margin-left: 8px; vertical-align: middle; }
 
+        /* --- 完全固定タブ --- */
+        .tabs { 
+            display: flex; 
+            background: var(--card-bg); 
+            padding: 0 8px; 
+            border-bottom: 1px solid var(--input-border); 
+            position: fixed; /* 固定 */
+            top: calc(var(--safe-top) + var(--header-height)); 
+            left: 0; width: 100%; 
+            z-index: 999; 
+            height: var(--tab-height);
+            align-items: center;
+        }
+        .tab { flex: 1; text-align: center; padding: 8px 4px; font-size: 13px; cursor: pointer; border-radius: 8px; color: var(--text-sub); font-weight: 700; }
+        .tab.active { background: var(--bg); color: var(--primary); }
+
         .streak-container {
             background: linear-gradient(135deg, #FF9500 0%, #FF3B30 100%);
-            color: white; padding: 12px; border-radius: 12px; margin: 10px 16px;
+            color: white; padding: 12px; border-radius: 12px; margin: 0 16px 16px;
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         .streak-count { font-size: 24px; font-weight: 800; }
@@ -93,24 +118,31 @@
             font-size: 16px; font-weight: 700; cursor: pointer;
         }
 
-        .tabs { display: flex; background: var(--card-bg); padding: 8px; border-bottom: 1px solid var(--input-border); position: sticky; top: 68px; z-index: 90; }
-        .tab { flex: 1; text-align: center; padding: 10px 4px; font-size: 13px; cursor: pointer; border-radius: 8px; color: var(--text-sub); font-weight: 700; }
-        .tab.active { background: var(--bg); color: var(--primary); }
-
-        /* カレンダー */
+        /* --- カレンダー (はみ出し修正) --- */
         .view-toggle { display: flex; margin: 10px 16px; border: 1px solid var(--primary); border-radius: 8px; overflow: hidden; }
         .view-btn { flex: 1; padding: 8px; text-align: center; font-size: 13px; font-weight: bold; background: var(--card-bg); color: var(--primary); cursor: pointer; }
         .view-btn.active { background: var(--primary); color: white; }
+        
         .calendar-grid { 
-            display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 10px; 
-            background: var(--card-bg); width: 100%; /* 幅を明示 */
+            display: grid; 
+            grid-template-columns: repeat(7, 1fr); 
+            gap: 2px; /* 隙間を詰めてはみ出し防止 */
+            padding: 8px; /* パディング微調整 */
+            background: var(--card-bg); 
+            width: 100%; 
         }
-        .cal-header { text-align: center; font-size: 12px; font-weight: bold; color: var(--text-sub); padding-bottom: 8px; }
-        .cal-day { aspect-ratio: 1; border: 1px solid var(--input-border); border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; position: relative; cursor: pointer; }
+        .cal-header { text-align: center; font-size: 12px; font-weight: bold; color: var(--text-sub); padding-bottom: 4px; }
+        .cal-day { 
+            aspect-ratio: 1; 
+            border: 1px solid var(--input-border); 
+            border-radius: 4px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            font-size: 14px; position: relative; cursor: pointer; 
+        }
         .cal-day.has-entry { background-color: rgba(0, 122, 255, 0.05); }
         .cal-day.has-entry:active { background-color: rgba(0, 122, 255, 0.2); }
         .cal-day.today { border-color: var(--primary); background: rgba(0,122,255,0.1); }
-        .cal-mark { width: 8px; height: 8px; border-radius: 50%; margin-top: 2px; }
+        .cal-mark { width: 6px; height: 6px; border-radius: 50%; margin-top: 2px; }
         .mark-dai-kichi { background: #FF3B30; }
         .mark-kichi { background: #FF9500; }
         .mark-kyo { background: #5856D6; }
@@ -124,13 +156,11 @@
         .btn-goshuin { color: var(--primary); border-color: var(--primary); background: rgba(0,122,255,0.05); font-weight: bold; }
         .btn-delete { color: var(--danger); border-color: var(--danger); background: rgba(255,59,48,0.05); }
 
-        /* 分析タブ */
         .chart-toggle-row { display: flex; gap: 10px; margin-bottom: 16px; }
         .toggle-btn { flex: 1; padding: 10px; font-size: 14px; border: 1px solid var(--input-border); background: var(--bg); color: var(--text-sub); border-radius: 8px; cursor: pointer; font-weight: 700; text-align: center; }
         .toggle-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         .chart-container { position: relative; height: 350px; width: 100%; }
 
-        /* 称号リスト */
         .badge-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; padding: 10px; }
         .badge-item { background: var(--card-bg); border: 2px solid var(--input-border); border-radius: 12px; padding: 10px; text-align: center; opacity: 0.4; filter: grayscale(100%); position: relative; transition:0.3s; }
         .badge-item.unlocked { opacity: 1; filter: grayscale(0%); background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,255,255,0.5) 100%); }
@@ -152,19 +182,19 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ手帖<span class="version-badge">ver 5.5</span></h1>
+    <h1>⛩️ おみくじ手帖<span class="version-badge">ver 5.6</span></h1>
     <button onclick="toggleTheme()" style="background:none; border:none; font-size:20px;">🌗</button>
 </header>
 
-<div class="container">
-    <div class="tabs">
-        <div class="tab active" onclick="switchTab('input')">🖊️ 記録</div>
-        <div class="tab" onclick="switchTab('history')">📜 履歴</div>
-        <div class="tab" onclick="switchTab('analysis')">📊 分析</div>
-        <div class="tab" onclick="switchTab('collection')">🏆 称号</div>
-        <div class="tab" onclick="switchTab('settings')">⚙️ 設定</div>
-    </div>
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('input')">🖊️ 記録</div>
+    <div class="tab" onclick="switchTab('history')">📜 履歴</div>
+    <div class="tab" onclick="switchTab('analysis')">📊 分析</div>
+    <div class="tab" onclick="switchTab('collection')">🏆 称号</div>
+    <div class="tab" onclick="switchTab('settings')">⚙️ 設定</div>
+</div>
 
+<div class="container">
     <div id="tab-input">
         <div class="streak-container">
             <div style="font-size:24px;">🔥</div>
@@ -365,7 +395,6 @@
     ];
 
     window.onload = () => {
-        // テーマ復元
         const savedTheme = localStorage.getItem(THEME_KEY);
         if (savedTheme) { document.documentElement.setAttribute('data-theme', savedTheme); }
         else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { document.documentElement.setAttribute('data-theme', 'dark'); }
@@ -539,7 +568,7 @@
         document.getElementById('day-modal').classList.add('show');
     }
 
-    // --- 分析 (★修正: 人物別スタックグラフ) ---
+    // --- 分析 (人物別スタックグラフ) ---
     function switchChartType(type) {
         currentChartType = type;
         document.getElementById('toggle-luck').classList.remove('active');
@@ -571,7 +600,6 @@
         const txtColor = isDark ? '#fff' : '#000';
         const colors = ['#007AFF', '#FF3B30', '#34C759', '#FF9500', '#5856D6', '#FF2D55', '#AF52DE'];
 
-        // 運勢または神社のカテゴリリストを用意
         let labels = [];
         let datasets = [];
 
@@ -585,7 +613,6 @@
                 borderWidth: 1
             }));
         } else {
-            // 神社グラフ (Top 10)
             const sCounts = {}; targetData.forEach(e => { sCounts[e.shrine] = (sCounts[e.shrine] || 0) + 1; });
             labels = Object.keys(sCounts).sort((a,b) => sCounts[b] - sCounts[a]).slice(0, 10);
             
@@ -760,7 +787,6 @@
     }
     function clearAllData() { if(confirm('本当に全部消す？')) { entries=[]; saveData(); } }
     
-    // --- ★修正: テーマ保存 ---
     function toggleTheme() {
         const current = document.documentElement.getAttribute('data-theme');
         const next = current === 'dark' ? 'light' : 'dark';
