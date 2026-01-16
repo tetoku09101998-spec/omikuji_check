@@ -21,7 +21,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 配色設定 --- */
         :root {
             --primary: #007AFF; --bg: #F2F2F7; --card-bg: #FFFFFF;
             --input-bg: #EFEFF4; --input-border: #C7C7CC;
@@ -31,7 +30,6 @@
             --safe-bottom: env(safe-area-inset-bottom);
         }
 
-        /* --- フォント設定 --- */
         @font-face {
             font-family: 'GoshuinFont';
             src: url('goshuin.ttf') format('truetype');
@@ -70,7 +68,6 @@
         .form-group { margin-bottom: 16px; }
         label { display: block; font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; }
 
-        /* 入力スタイル（候補表示修正済み） */
         input[type="text"], input[type="date"], select, textarea {
             width: 100%; padding: 12px; font-size: 16px; font-weight: 500;
             border: 1px solid var(--input-border); border-radius: 8px; box-sizing: border-box;
@@ -144,7 +141,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ手帖<span class="version-badge">ver 5.2</span></h1>
+    <h1>⛩️ おみくじ手帖<span class="version-badge">ver 5.3</span></h1>
     <button onclick="toggleTheme()" style="background:none; border:none; font-size:20px;">🌗</button>
 </header>
 
@@ -531,7 +528,7 @@
         document.getElementById('day-modal').classList.add('show');
     }
 
-    // --- 分析 ---
+    // --- 分析 (★修正: 人物別スタックグラフ復活) ---
     function switchChartType(type) {
         currentChartType = type;
         document.getElementById('toggle-luck').classList.remove('active');
@@ -555,40 +552,43 @@
         if (myChart) myChart.destroy();
 
         const person = document.getElementById('filter-person').value;
-        let filtered = entries;
-        if(person !== 'ALL') filtered = entries.filter(e => e.name === person);
+        let targetData = entries;
+        // ALLでも個別フィルタリングはしない（全データから人物別に集計するため）
+        if(person !== 'ALL') targetData = entries.filter(e => e.name === person);
 
+        const persons = person === 'ALL' ? [...new Set(targetData.map(e => e.name))].sort() : [person];
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const txtColor = isDark ? '#fff' : '#000';
+        const colors = ['#007AFF', '#FF3B30', '#34C759', '#FF9500', '#5856D6', '#FF2D55', '#AF52DE'];
 
         if (currentChartType === 'luck') {
             const lucks = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
-            const counts = lucks.map(l => filtered.filter(e => e.result === l).length);
-            
+            // 人物ごとのデータセットを作成（スタック）
+            const datasets = persons.map((p, i) => ({
+                label: p,
+                data: lucks.map(l => targetData.filter(e => e.name === p && e.result === l).length),
+                backgroundColor: colors[i % colors.length],
+                borderColor: isDark ? '#333' : '#fff',
+                borderWidth: 1
+            }));
+
             myChart = new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: lucks,
-                    datasets: [{
-                        label: '回数',
-                        data: counts,
-                        backgroundColor: ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#5AC8FA', '#5856D6', '#000'],
-                        barPercentage: 0.6
-                    }]
-                },
+                data: { labels: lucks, datasets: datasets },
                 options: {
                     indexAxis: 'y', 
-                    responsive: true,
+                    responsive: true, 
                     maintainAspectRatio: false,
                     scales: {
-                        x: { ticks: { color: txtColor, stepSize:1 } },
-                        y: { ticks: { color: txtColor, font:{weight:'bold'} } }
+                        x: { stacked: true, ticks: { color: txtColor, stepSize:1 } },
+                        y: { stacked: true, ticks: { color: txtColor, font:{weight:'bold'} } }
                     },
-                    plugins: { legend: { display: false } }
+                    plugins: { legend: { display: true, position:'bottom', labels:{color:txtColor} } }
                 }
             });
         } else {
-            const sCounts = {}; filtered.forEach(e => { sCounts[e.shrine] = (sCounts[e.shrine] || 0) + 1; });
+            // 神社グラフ（ランキング形式）
+            const sCounts = {}; targetData.forEach(e => { sCounts[e.shrine] = (sCounts[e.shrine] || 0) + 1; });
             const sorted = Object.keys(sCounts).sort((a,b) => sCounts[b] - sCounts[a]).slice(0, 10);
             
             myChart = new Chart(ctx, {
@@ -614,7 +614,7 @@
                 }
             });
         }
-        document.getElementById('analysis-summary').textContent = `対象データ: ${filtered.length}件`;
+        document.getElementById('analysis-summary').textContent = `対象データ: ${targetData.length}件`;
     }
 
     // --- シェア & 御朱印 ---
@@ -763,6 +763,7 @@
     }
     function clearAllData() { if(confirm('本当に全部消す？')) { entries=[]; saveData(); } }
     
+    // --- ★修正: テーマ保存 ---
     function toggleTheme() {
         const current = document.documentElement.getAttribute('data-theme');
         const next = current === 'dark' ? 'light' : 'dark';
