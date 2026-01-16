@@ -637,4 +637,203 @@
         } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[4])) {
             lunarMonth = 5; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[4])) / 86400000) + 1;
         } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[3])) {
-            lunarMonth = 4; lunarDay = Math.floor((targetDate - new
+            lunarMonth = 4; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[3])) / 86400000) + 1;
+        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[2])) {
+            lunarMonth = 3; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[2])) / 86400000) + 1;
+        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[1])) {
+            lunarMonth = 2; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[1])) / 86400000) + 1;
+        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[0])) {
+            lunarMonth = 1; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[0])) / 86400000) + 1;
+        } else if (targetDate >= new Date(LUNAR_YEAR_END_2025)) {
+            lunarMonth = 12; lunarDay = Math.floor((targetDate - new Date(LUNAR_YEAR_END_2025)) / 86400000) + 1;
+        } else if (targetDate >= new Date(LUNAR_LAST_MONTH_2025)) {
+            lunarMonth = 11; lunarDay = Math.floor((targetDate - new Date(LUNAR_LAST_MONTH_2025)) / 86400000) + 1;
+        } else {
+            return "判定不可";
+        }
+
+        const rokuyoOrder = ['大安', '赤口', '先勝', '友引', '先負', '仏滅']; 
+        return rokuyoOrder[(lunarMonth + lunarDay) % 6];
+    }
+
+    function updateRokuyoDisplay() {
+        const dateVal = document.getElementById('input-date').value;
+        if(!dateVal) return;
+        const r = getRokuyo(dateVal);
+        const el = document.getElementById('rokuyo-display');
+        el.textContent = r;
+        el.className = ''; 
+        if(r === '大安') el.classList.add('rokuyo-taian');
+        if(r === '仏滅') el.classList.add('rokuyo-butsumetsu');
+    }
+
+    function hasConsecutiveDays(data, days) {
+        if(data.length < days) return false;
+        const uniqueDates = [...new Set(data.map(e => e.date))].sort();
+        let consecutive = 1;
+        for(let i=1; i<uniqueDates.length; i++) {
+            const diff = (new Date(uniqueDates[i]) - new Date(uniqueDates[i-1])) / 86400000;
+            if(diff === 1) consecutive++; else consecutive = 1;
+            if(consecutive >= days) return true;
+        }
+        return false;
+    }
+
+    function renderBadges() {
+        const container = document.getElementById('badge-container');
+        container.innerHTML = '';
+        BADGES.forEach(badge => {
+            const isUnlocked = badge.check(entries);
+            const div = document.createElement('div');
+            let classes = `badge-item ${isUnlocked ? 'unlocked' : ''}`;
+            if (badge.id === 'master_of_omikuji') classes += ' master-rank';
+            div.className = classes;
+            div.innerHTML = `<span class="badge-icon">${badge.icon}</span><span class="badge-name">${badge.name}</span><span class="badge-desc">${badge.desc}</span>`;
+            container.appendChild(div);
+        });
+    }
+
+    function switchHistoryView(view) {
+        document.getElementById('view-list-btn').classList.toggle('active', view === 'list');
+        document.getElementById('view-cal-btn').classList.toggle('active', view === 'calendar');
+        document.getElementById('history-list-view').classList.toggle('hidden', view !== 'list');
+        document.getElementById('history-cal-view').classList.toggle('hidden', view !== 'calendar');
+        if(view === 'calendar') renderCalendar();
+    }
+
+    function changeCalMonth(delta) { currentCalDate.setMonth(currentCalDate.getMonth() + delta); renderCalendar(); }
+
+    function renderCalendar() {
+        const year = currentCalDate.getFullYear();
+        const month = currentCalDate.getMonth();
+        document.getElementById('cal-month-label').textContent = `${year}年${month+1}月`;
+        const firstDay = new Date(year, month, 1).getDay(); 
+        const endDate = new Date(year, month+1, 0).getDate();
+        const container = document.getElementById('calendar-body');
+        container.innerHTML = '';
+        for(let i=0; i<firstDay; i++) container.appendChild(createCalCell(''));
+        for(let d=1; d<=endDate; d++) {
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            container.appendChild(createCalCell(d, entries.filter(e => e.date === dateStr), dateStr));
+        }
+    }
+
+    function createCalCell(day, dayEntries = [], dateStr = '') {
+        const div = document.createElement('div');
+        div.className = 'cal-day';
+        if(!day) return div;
+        if(dateStr === new Date().toISOString().split('T')[0]) div.classList.add('today');
+        if(dayEntries.length > 0) {
+            div.classList.add('has-entry');
+            div.onclick = () => openDayModal(dateStr); 
+        }
+        div.innerHTML = `<span>${day}</span>`;
+        dayEntries.forEach(e => {
+            const mark = document.createElement('div');
+            mark.className = 'cal-mark';
+            if(e.result === '大吉') mark.classList.add('mark-dai-kichi');
+            else if(e.result.includes('吉')) mark.classList.add('mark-kichi');
+            else mark.classList.add('mark-kyo');
+            div.appendChild(mark);
+        });
+        return div;
+    }
+
+    function openDayModal(dateStr) {
+        const dayEntries = entries.filter(e => e.date === dateStr);
+        if (dayEntries.length === 0) return;
+        const modalBody = document.getElementById('modal-body');
+        modalBody.innerHTML = '';
+        document.getElementById('modal-date').textContent = dateStr;
+        dayEntries.forEach(entry => {
+            const cssClass = getRankClass(entry.result);
+            const div = document.createElement('div');
+            div.className = 'modal-entry';
+            div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><div style="font-weight:bold; font-size:16px;">${entry.shrine}</div><div style="font-size:12px; color:var(--text-sub); margin-top:2px;">👤 ${entry.name || '自分'}</div></div><div class="fortune-badge ${cssClass}">${entry.result}</div></div>${entry.note ? `<div style="margin-top:10px; font-size:14px; background:var(--card-bg); padding:8px; border-radius:6px;">${entry.note}</div>` : ''}`;
+            modalBody.appendChild(div);
+        });
+        document.getElementById('day-modal').classList.add('show');
+    }
+    function closeModal() { document.getElementById('day-modal').classList.remove('show'); }
+
+    function addEntry() {
+        const nameInput = document.getElementById('input-name').value.trim();
+        const shrineInput = document.getElementById('input-shrine').value.trim();
+        if (!shrineInput || !nameInput) return alert('名前と神社名を入れて！');
+        localStorage.setItem(LAST_NAME_KEY, nameInput);
+        entries.unshift({ id: Date.now(), name: nameInput, date: document.getElementById('input-date').value || new Date().toISOString().split('T')[0], shrine: shrineInput, result: document.getElementById('input-result').value, note: document.getElementById('input-note').value });
+        entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+        saveData();
+        document.getElementById('input-shrine').value = ''; document.getElementById('input-note').value = '';
+        switchTab('history');
+    }
+
+    function deleteEntry(id) { if(confirm('本当に消すよ？')) { entries = entries.filter(e => e.id !== id); saveData(); } }
+
+    function shareEntry(id) {
+        const e = entries.find(e => e.id === id);
+        if (!e) return;
+        const text = `📅 ${e.date}\n⛩️ ${e.shrine}で【${e.result}】を引きました！\n\n#おみくじ管理 #運勢`;
+        if (navigator.share) navigator.share({ title: 'おみくじ結果', text: text, url: window.location.href }).catch(console.error);
+        else window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`, '_blank');
+    }
+
+    function clearAllData() { if(confirm('全部消えるよ！本当によい？')) { entries = []; saveData(); alert('まっさらにしました'); } }
+
+    function updateUI() {
+        document.getElementById('entry-count').textContent = entries.length;
+        updateInputCandidates();
+        const listEl = document.getElementById('history-list');
+        listEl.innerHTML = '';
+        if (entries.length === 0) listEl.innerHTML = '<div style="text-align:center; padding:40px; font-size:14px; color:var(--text-sub);">記録がありません</div>';
+        entries.forEach(e => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.innerHTML = `<div class="history-top"><div class="history-content history-info" style="flex:1;"><h3>${e.shrine}</h3><div class="date">📅 ${e.date}</div><div class="person-tag">👤 ${e.name || '自分'}</div></div><div class="fortune-badge ${getRankClass(e.result)}">${e.result}</div></div>${e.note ? `<div class="history-content"><div class="note" style="font-size:13px; margin-top:8px;">📝 ${e.note}</div></div>` : ''}<div class="action-row"><button class="action-btn share-btn" onclick="shareEntry(${e.id})">📤 シェア</button><button class="action-btn delete-btn" onclick="deleteEntry(${e.id})">🗑️ 削除</button></div>`;
+            listEl.appendChild(item);
+        });
+    }
+
+    function getRankClass(r) { switch(r) { case '大吉': return 'rank-dai-kichi'; case '吉': return 'rank-kichi'; case '中吉': return 'rank-chu-kichi'; case '小吉': return 'rank-sho-kichi'; case '末吉': return 'rank-sue-kichi'; case '凶': return 'rank-kyo'; case '大凶': return 'rank-dai-kyo'; default: return ''; } }
+
+    function updatePersonFilter() {
+        const filter = document.getElementById('filter-person');
+        const val = filter.value;
+        while(filter.options.length > 1) filter.remove(1);
+        const names = [...new Set(entries.map(e => e.name))].sort();
+        names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; filter.appendChild(o); });
+        filter.value = names.includes(val) ? val : "ALL";
+    }
+
+    function switchChartType(t) { currentChartType = t; document.getElementById('toggle-luck').classList.toggle('active', t === 'luck'); document.getElementById('toggle-shrine').classList.toggle('active', t === 'shrine'); updateChart(); }
+
+    function updateChart() {
+        const start = new Date(document.getElementById('filter-start').value);
+        const end = new Date(document.getElementById('filter-end').value);
+        end.setHours(23,59,59);
+        const person = document.getElementById('filter-person').value;
+        let filtered = entries.filter(e => { const d = new Date(e.date); return d >= start && d <= end; });
+        if (person !== "ALL") filtered = filtered.filter(e => e.name === person);
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        if (myChart) myChart.destroy();
+        if (currentChartType === 'luck') {
+            const lucks = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
+            const persons = person === "ALL" ? [...new Set(filtered.map(e => e.name))] : [person];
+            const colors = ['#007AFF', '#FF3B30', '#34C759', '#FF9500', '#AF52DE', '#5856D6', '#FF2D55', '#8E8E93'];
+            myChart = new Chart(ctx, { type: 'bar', data: { labels: lucks, datasets: persons.map((p, i) => ({ label: p, data: lucks.map(l => filtered.filter(e => e.name === p && e.result === l).length), backgroundColor: colors[i % colors.length], borderColor: 'rgba(255,255,255,0.5)', borderWidth: 1, barPercentage: 0.7 })) }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, ticks: { color: isDark ? '#FFF' : '#000', font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { stacked: true, ticks: { color: isDark ? '#FFF' : '#000', font: {size: 12, weight:'bold'} }, grid: { display: false } } }, plugins: { legend: { position: 'bottom', labels: { color: isDark ? '#FFF' : '#000', font: { size: 12, weight: 'bold' }, boxWidth: 12 } } } } });
+        } else {
+            const counts = {}; filtered.forEach(e => { counts[e.shrine] = (counts[e.shrine] || 0) + 1; });
+            const sorted = Object.keys(counts).sort((a,b) => counts[b] - counts[a]);
+            myChart = new Chart(ctx, { type: 'bar', data: { labels: sorted, datasets: [{ label: '参拝回数', data: sorted.map(s => counts[s]), backgroundColor: '#FF3B30', borderRadius: 4, barPercentage: 0.6 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { color: isDark ? '#FFF' : '#000', font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { ticks: { color: isDark ? '#FFF' : '#000', font: {size: 12, weight:'bold'} }, grid: { display: false } } }, plugins: { legend: { display: false } } } });
+        }
+        document.getElementById('analysis-summary').textContent = `対象データ: ${filtered.length}件`;
+    }
+
+    function exportData() { if(entries.length === 0) return alert('データがありません'); const blob = new Blob([JSON.stringify(entries, null, 2)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `omikuji_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); }
+    function triggerImport() { document.getElementById('file-import').click(); }
+    function importData(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const data = JSON.parse(e.target.result); if (Array.isArray(data)) { if(confirm('上書きしますか？')) { entries = data; saveData(); alert('復元完了！'); } } } catch (err) { alert('形式が正しくありません'); } }; reader.readAsText(file); input.value = ''; }
+</script>
+
+</body>
+</html>
