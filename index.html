@@ -176,7 +176,6 @@
             color: var(--primary);
         }
 
-        /* 履歴・カレンダー切り替え */
         .view-toggle {
             display: flex;
             margin: 10px 16px;
@@ -199,7 +198,6 @@
             color: white;
         }
 
-        /* カレンダー本体 */
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -234,7 +232,6 @@
         .mark-kichi { background: #FF9500; }
         .mark-kyo { background: #5856D6; }
 
-        /* ポップアップモーダル */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -276,7 +273,6 @@
         .modal-close { background: none; border: none; font-size: 24px; color: var(--text-sub); cursor: pointer; padding: 0 8px; }
         .modal-entry { background: var(--bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--input-border); }
 
-        /* 称号リスト */
         .badge-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; padding: 10px; }
         .badge-item { background: var(--card-bg); border: 2px solid var(--input-border); border-radius: 12px; padding: 12px; text-align: center; opacity: 0.5; filter: grayscale(100%); transition: all 0.3s; }
         .badge-item.unlocked { opacity: 1; filter: grayscale(0%); border-color: var(--gold); box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3); background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,215,0,0.1) 100%); }
@@ -285,10 +281,6 @@
         .badge-icon { font-size: 32px; margin-bottom: 4px; display:block;}
         .badge-name { font-size: 12px; font-weight: bold; display: block; line-height:1.2; }
         .badge-desc { font-size: 10px; color: var(--text-sub); display: block; margin-top:4px;}
-
-        #rokuyo-display { font-size: 14px; font-weight: bold; color: var(--text-sub); margin-left: 10px; padding: 2px 8px; border-radius: 4px; background: var(--input-bg); }
-        .rokuyo-taian { color: #FF3B30; background: #FFEBEE; }
-        .rokuyo-butsumetsu { color: var(--text); background: #EEEEEE; }
 
         .history-item { background: var(--card-bg); padding: 12px 16px; border-bottom: 1px solid var(--input-border); display: flex; flex-direction: column; gap: 8px; }
         .history-top { display: flex; justify-content: space-between; align-items: flex-start; }
@@ -325,7 +317,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ<span class="version-badge">ver 2.2</span></h1>
+    <h1>⛩️ おみくじ<span class="version-badge">ver 2.3</span></h1>
     <button class="theme-toggle" onclick="toggleTheme()">🌗 切替</button>
 </header>
 
@@ -348,8 +340,8 @@
             </div>
 
             <div class="form-group">
-                <label>📅 参拝日 <span id="rokuyo-display"></span></label>
-                <input type="date" id="input-date" onchange="updateRokuyoDisplay()">
+                <label>📅 参拝日</label>
+                <input type="date" id="input-date">
             </div>
 
             <div class="form-group">
@@ -475,26 +467,6 @@
     let currentChartType = 'luck';
     let currentCalDate = new Date(); 
 
-    // 2026年の各旧暦月の1日にあたる新暦日付データ (正確な六曜判定用)
-    // index 0=旧暦1月, 1=旧暦2月...
-    const LUNAR_NEW_MONTHS_2026 = [
-        "2026-02-17", // 旧暦1月1日 (立春後)
-        "2026-03-19", // 旧暦2月1日
-        "2026-04-17", // 旧暦3月1日
-        "2026-05-16", // 旧暦4月1日
-        "2026-06-15", // 旧暦5月1日
-        "2026-07-14", // 旧暦6月1日
-        "2026-08-12", // 旧暦7月1日
-        "2026-09-11", // 旧暦8月1日
-        "2026-10-10", // 旧暦9月1日
-        "2026-11-09", // 旧暦10月1日
-        "2026-12-08", // 旧暦11月1日
-        "2027-01-07"  // 旧暦12月1日
-    ];
-    // 2025年末の旧暦開始日も必要 (2026年1月判定用)
-    const LUNAR_LAST_MONTH_2025 = "2025-12-20"; // 旧暦11月1日
-    const LUNAR_YEAR_END_2025 = "2026-01-19";   // 旧暦12月1日
-
     const BADGES = [
         { id: 'first_step', name: '初めの一歩', icon: '🐣', desc: '初めて記録した', check: (d) => d.length >= 1 },
         { id: 'shrine_walker', name: '参拝愛好家', icon: '🚶', desc: '記録が10回に到達', check: (d) => d.length >= 10 },
@@ -536,8 +508,8 @@
 
     window.onload = () => {
         const savedTheme = localStorage.getItem(THEME_KEY);
-        if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
-        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'dark');
+        if (savedTheme) { document.documentElement.setAttribute('data-theme', savedTheme); }
+        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { document.documentElement.setAttribute('data-theme', 'dark'); }
 
         document.getElementById('input-date').valueAsDate = new Date();
         const lastName = localStorage.getItem(LAST_NAME_KEY);
@@ -551,7 +523,6 @@
         document.getElementById('filter-end').valueAsDate = today;
 
         updateUI();
-        updateRokuyoDisplay();
         renderBadges();
     };
 
@@ -608,63 +579,6 @@
             opt.value = shrine;
             shrineListEl.appendChild(opt);
         });
-    }
-
-    // --- 2026年専用・高精度六曜判定ロジック ---
-    function getRokuyo(dateStr) {
-        const date = new Date(dateStr);
-        if (date.getFullYear() !== 2026 && date.getFullYear() !== 2025 && date.getFullYear() !== 2027) return "判定不可";
-
-        let targetDate = new Date(dateStr);
-        let lunarMonth = 0;
-        let lunarDay = 0;
-
-        // 指定日がどの旧暦月に属するか判定
-        if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[11])) {
-            lunarMonth = 12; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[11])) / 86400000) + 1;
-        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[10])) {
-            lunarMonth = 11; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[10])) / 86400000) + 1;
-        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[9])) {
-            lunarMonth = 10; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[9])) / 86400000) + 1;
-        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[8])) {
-            lunarMonth = 9; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[8])) / 86400000) + 1;
-        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[7])) {
-            lunarMonth = 8; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[7])) / 86400000) + 1;
-        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[6])) {
-            lunarMonth = 7; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[6])) / 86400000) + 1;
-        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[5])) {
-            lunarMonth = 6; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[5])) / 86400000) + 1;
-        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[4])) {
-            lunarMonth = 5; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[4])) / 86400000) + 1;
-        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[3])) {
-            lunarMonth = 4; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[3])) / 86400000) + 1;
-        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[2])) {
-            lunarMonth = 3; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[2])) / 86400000) + 1;
-        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[1])) {
-            lunarMonth = 2; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[1])) / 86400000) + 1;
-        } else if (targetDate >= new Date(LUNAR_NEW_MONTHS_2026[0])) {
-            lunarMonth = 1; lunarDay = Math.floor((targetDate - new Date(LUNAR_NEW_MONTHS_2026[0])) / 86400000) + 1;
-        } else if (targetDate >= new Date(LUNAR_YEAR_END_2025)) {
-            lunarMonth = 12; lunarDay = Math.floor((targetDate - new Date(LUNAR_YEAR_END_2025)) / 86400000) + 1;
-        } else if (targetDate >= new Date(LUNAR_LAST_MONTH_2025)) {
-            lunarMonth = 11; lunarDay = Math.floor((targetDate - new Date(LUNAR_LAST_MONTH_2025)) / 86400000) + 1;
-        } else {
-            return "判定不可";
-        }
-
-        const rokuyoOrder = ['大安', '赤口', '先勝', '友引', '先負', '仏滅']; 
-        return rokuyoOrder[(lunarMonth + lunarDay) % 6];
-    }
-
-    function updateRokuyoDisplay() {
-        const dateVal = document.getElementById('input-date').value;
-        if(!dateVal) return;
-        const r = getRokuyo(dateVal);
-        const el = document.getElementById('rokuyo-display');
-        el.textContent = r;
-        el.className = ''; 
-        if(r === '大安') el.classList.add('rokuyo-taian');
-        if(r === '仏滅') el.classList.add('rokuyo-butsumetsu');
     }
 
     function hasConsecutiveDays(data, days) {
