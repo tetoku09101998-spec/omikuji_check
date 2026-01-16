@@ -8,7 +8,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="おみくじ手帖">
-    <meta name="mobile-web-app-capable" content="yes">
+    
+    <link rel="manifest" href='data:application/manifest+json,{
+        "name": "おみくじ手帖",
+        "short_name": "おみくじ",
+        "start_url": ".",
+        "display": "standalone",
+        "background_color": "#F2F2F7",
+        "theme_color": "#F2F2F7",
+        "icons": [{
+            "src": "data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ccircle cx=%2750%27 cy=%2750%27 r=%2750%27 fill=%27%23FF3B30%27/%3E%3Ctext x=%2750%27 y=%2770%27 font-size=%2760%27 text-anchor=%27middle%27 fill=%27white%27%3E⛩️%3C/text%3E%3C/svg%3E",
+            "sizes": "192x192",
+            "type": "image/svg+xml"
+        }]
+    }'>
+
     <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 
@@ -29,7 +43,7 @@
             --safe-bottom: env(safe-area-inset-bottom);
         }
 
-        /* --- フォント設定 --- */
+        /* --- フォント設定: goshuin.ttf を使用 --- */
         @font-face {
             font-family: 'GoshuinFont';
             src: url('goshuin.ttf') format('truetype');
@@ -53,7 +67,6 @@
             border-bottom: 1px solid var(--input-border); height: 44px;
         }
 
-        /* アプリ名変更箇所 3 (ヘッダー) */
         h1 { font-size: 17px; margin: 0; font-weight: 700; }
         .version-badge { font-size: 10px; background: var(--input-bg); padding: 2px 6px; border-radius: 4px; color: var(--text-sub); margin-left: 8px; vertical-align: middle; }
 
@@ -143,7 +156,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ手帖<span class="version-badge">ver 5.0</span></h1>
+    <h1>⛩️ おみくじ手帖<span class="version-badge">ver 5.1</span></h1>
     <button onclick="toggleTheme()" style="background:none; border:none; font-size:20px;">🌗</button>
 </header>
 
@@ -271,7 +284,7 @@
 
 <script>
     const STORAGE_KEY = 'omikuji_app_data_v1';
-    const THEME_KEY = 'omikuji_app_theme'; // テーマ保存用キー
+    const THEME_KEY = 'omikuji_app_theme'; 
     let entries = [];
     let currentGoshuinEntry = null;
     let myChart = null;
