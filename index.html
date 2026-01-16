@@ -29,7 +29,7 @@
             --safe-bottom: env(safe-area-inset-bottom);
         }
 
-        /* --- ★修正: 指示通り goshuin.ttf を指定 --- */
+        /* --- フォント設定: goshuin.ttf を使用 --- */
         @font-face {
             font-family: 'GoshuinFont';
             src: url('goshuin.ttf') format('truetype');
@@ -90,7 +90,7 @@
         .tab { flex: 1; text-align: center; padding: 10px 4px; font-size: 13px; cursor: pointer; border-radius: 8px; color: var(--text-sub); font-weight: 700; }
         .tab.active { background: var(--bg); color: var(--primary); }
 
-        /* カレンダー（クリック復活） */
+        /* カレンダー */
         .view-toggle { display: flex; margin: 10px 16px; border: 1px solid var(--primary); border-radius: 8px; overflow: hidden; }
         .view-btn { flex: 1; padding: 8px; text-align: center; font-size: 13px; font-weight: bold; background: var(--card-bg); color: var(--primary); cursor: pointer; }
         .view-btn.active { background: var(--primary); color: white; }
@@ -114,19 +114,19 @@
         .btn-goshuin { color: var(--primary); border-color: var(--primary); background: rgba(0,122,255,0.05); font-weight: bold; }
         .btn-delete { color: var(--danger); border-color: var(--danger); background: rgba(255,59,48,0.05); }
 
-        /* 分析タブ用トグル */
+        /* 分析タブ */
         .chart-toggle-row { display: flex; gap: 10px; margin-bottom: 16px; }
         .toggle-btn { flex: 1; padding: 10px; font-size: 14px; border: 1px solid var(--input-border); background: var(--bg); color: var(--text-sub); border-radius: 8px; cursor: pointer; font-weight: 700; text-align: center; }
         .toggle-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         .chart-container { position: relative; height: 350px; width: 100%; }
 
-        /* 称号リスト（★レアリティスタイル完全復活） */
+        /* 称号リスト */
         .badge-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 10px; padding: 10px; }
         .badge-item { background: var(--card-bg); border: 2px solid var(--input-border); border-radius: 12px; padding: 10px; text-align: center; opacity: 0.4; filter: grayscale(100%); position: relative; transition:0.3s; }
         .badge-item.unlocked { opacity: 1; filter: grayscale(0%); background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,255,255,0.5) 100%); }
         .badge-rank-1.unlocked { border-color: var(--bronze); box-shadow: 0 2px 5px rgba(205,127,50,0.3); }
-        .badge-rank-2.unlocked { border-color: var(--silver); box-shadow: 0 3px 8px rgba(192,192,192,0.4); background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%); }
-        .badge-rank-3.unlocked { border-color: var(--gold); box-shadow: 0 4px 10px rgba(255,215,0,0.5); background: linear-gradient(135deg, #fffcf0 0%, #fffae0 100%); }
+        .badge-rank-2.unlocked { border-color: var(--silver); box-shadow: 0 3px 8px rgba(192,192,192,0.4); }
+        .badge-rank-3.unlocked { border-color: var(--gold); box-shadow: 0 4px 10px rgba(255,215,0,0.5); }
         .badge-rank-4.unlocked { border-color: var(--primary); box-shadow: 0 0 10px var(--primary); background: linear-gradient(135deg, #f0f8ff 0%, #e6f2ff 100%); animation: pulse 2s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 5px var(--primary); } 50% { box-shadow: 0 0 15px var(--primary); } 100% { box-shadow: 0 0 5px var(--primary); } }
 
@@ -142,7 +142,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ<span class="version-badge">ver 4.3</span></h1>
+    <h1>⛩️ おみくじ<span class="version-badge">ver 4.4</span></h1>
     <button onclick="toggleTheme()" style="background:none; border:none; font-size:20px;">🌗</button>
 </header>
 
@@ -270,13 +270,13 @@
 
 <script>
     const STORAGE_KEY = 'omikuji_app_data_v1';
+    const THEME_KEY = 'omikuji_app_theme'; // ★テーマ保存用キー
     let entries = [];
     let currentGoshuinEntry = null;
     let myChart = null;
     let currentChartType = 'luck';
     let currentCalDate = new Date();
 
-    // --- ★完全版：称号データリスト (全種復活) ---
     const BADGES = [
         { id: 'f1', name: '初めの一歩', icon: '🐣', desc: '初めて記録した', rank: 1, check: (d) => d.length >= 1 },
         { id: 'f10', name: '参拝愛好家', icon: '🚶', desc: '記録が10回', rank: 1, check: (d) => d.length >= 10 },
@@ -355,6 +355,11 @@
     ];
 
     window.onload = () => {
+        // --- ★修正: テーマ読み込み ---
+        const savedTheme = localStorage.getItem(THEME_KEY);
+        if (savedTheme) { document.documentElement.setAttribute('data-theme', savedTheme); }
+        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { document.documentElement.setAttribute('data-theme', 'dark'); }
+
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) entries = JSON.parse(stored);
         document.getElementById('input-date').valueAsDate = new Date();
@@ -423,8 +428,6 @@
         // 履歴リスト更新
         const list = document.getElementById('history-list');
         list.innerHTML = '';
-        if(entries.length === 0) list.innerHTML = '<div style="text-align:center;padding:20px;color:#888;">まだ記録がないよ</div>';
-        
         entries.forEach(e => {
             const div = document.createElement('div');
             div.className = 'history-item';
@@ -652,7 +655,6 @@
         
         const fontBase = "'GoshuinFont', 'Shippori Mincho', 'Hiragino Mincho ProN', serif";
 
-        // 朱印
         ctx.beginPath(); ctx.arc(width/2, height/2+20, 80, 0, Math.PI*2);
         ctx.strokeStyle = "rgba(230,0,51,0.15)"; ctx.lineWidth = 6; ctx.stroke();
         ctx.fillStyle = "rgba(230,0,51,0.15)"; ctx.font = `80px ${fontBase}`;
@@ -704,39 +706,7 @@
         });
     }
 
-    // --- その他 ---
-    function hasConsecutiveDays(data, days) {
-        if(data.length < days) return false;
-        const dates = [...new Set(data.map(e => e.date))].sort();
-        let c = 1;
-        for(let i=1; i<dates.length; i++) {
-            if( (new Date(dates[i]) - new Date(dates[i-1]))/86400000 === 1 ) c++; else c=1;
-            if(c >= days) return true;
-        }
-        return false;
-    }
-    function hasConsecutiveResult(data, targets, count) {
-        if(data.length < count) return false;
-        const s = [...data].sort((a,b)=>new Date(a.date)-new Date(b.date));
-        let c = 0;
-        for(let i=0; i<s.length; i++) {
-            if(targets.includes(s[i].result)) c++; else c=0;
-            if(c >= count) return true;
-        }
-        return false;
-    }
-
-    function renderBadges() {
-        const c = document.getElementById('badge-container'); c.innerHTML = '';
-        BADGES.forEach(b => {
-            const div = document.createElement('div');
-            const unlocked = b.check(entries);
-            div.className = `badge-item badge-rank-${b.rank} ${unlocked ? 'unlocked' : ''}`;
-            div.innerHTML = `<div style="font-size:28px;">${b.icon}</div><div style="font-size:10px; font-weight:bold; line-height:1.2;">${b.name}</div><div style="font-size:9px; margin-top:2px;">${b.desc}</div>`;
-            c.appendChild(div);
-        });
-    }
-
+    // --- データ管理 ---
     function exportData() {
         const blob = new Blob([JSON.stringify(entries, null, 2)], {type: "application/json"});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `omikuji_backup.json`; a.click();
@@ -759,9 +729,13 @@
         input.value = '';
     }
     function clearAllData() { if(confirm('本当に全部消す？')) { entries=[]; saveData(); } }
+    
+    // --- ★修正: テーマ保存 ---
     function toggleTheme() {
-        const c = document.documentElement.getAttribute('data-theme');
-        document.documentElement.setAttribute('data-theme', c === 'dark' ? 'light' : 'dark');
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem(THEME_KEY, next);
         if(currentChartType) updateChart();
     }
     function closeModal(id) { 
