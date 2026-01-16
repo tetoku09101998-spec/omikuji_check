@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>おみくじ管理</title>
+    <title>おみくじ手帖</title>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="おみくじ">
+    <meta name="apple-mobile-web-app-title" content="おみくじ手帖">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
@@ -29,7 +29,7 @@
             --safe-bottom: env(safe-area-inset-bottom);
         }
 
-        /* --- フォント設定: goshuin.ttf を使用 --- */
+        /* --- フォント設定 --- */
         @font-face {
             font-family: 'GoshuinFont';
             src: url('goshuin.ttf') format('truetype');
@@ -53,6 +53,7 @@
             border-bottom: 1px solid var(--input-border); height: 44px;
         }
 
+        /* アプリ名変更箇所 3 (ヘッダー) */
         h1 { font-size: 17px; margin: 0; font-weight: 700; }
         .version-badge { font-size: 10px; background: var(--input-bg); padding: 2px 6px; border-radius: 4px; color: var(--text-sub); margin-left: 8px; vertical-align: middle; }
 
@@ -142,7 +143,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ<span class="version-badge">ver 4.4</span></h1>
+    <h1>⛩️ おみくじ手帖<span class="version-badge">ver 5.0</span></h1>
     <button onclick="toggleTheme()" style="background:none; border:none; font-size:20px;">🌗</button>
 </header>
 
@@ -270,7 +271,7 @@
 
 <script>
     const STORAGE_KEY = 'omikuji_app_data_v1';
-    const THEME_KEY = 'omikuji_app_theme'; // ★テーマ保存用キー
+    const THEME_KEY = 'omikuji_app_theme'; // テーマ保存用キー
     let entries = [];
     let currentGoshuinEntry = null;
     let myChart = null;
@@ -355,7 +356,7 @@
     ];
 
     window.onload = () => {
-        // --- ★修正: テーマ読み込み ---
+        // テーマ復元
         const savedTheme = localStorage.getItem(THEME_KEY);
         if (savedTheme) { document.documentElement.setAttribute('data-theme', savedTheme); }
         else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { document.documentElement.setAttribute('data-theme', 'dark'); }
@@ -374,10 +375,10 @@
         const map = {'input':0, 'history':1, 'analysis':2, 'collection':3, 'settings':4};
         tabs[map[t]].classList.add('active');
         if(t === 'analysis') {
-            updatePersonFilter(); // フィルタ更新
+            updatePersonFilter(); 
             updateChart();
         } else if(t === 'history') {
-            switchHistoryView('list'); // デフォルトはリスト
+            switchHistoryView('list');
         }
     }
 
@@ -425,7 +426,6 @@
         updateDatalist('name-list', entries.map(e => e.name));
         updateDatalist('shrine-list', entries.map(e => e.shrine));
         
-        // 履歴リスト更新
         const list = document.getElementById('history-list');
         list.innerHTML = '';
         entries.forEach(e => {
@@ -462,7 +462,7 @@
         return '#333';
     }
 
-    // --- カレンダー & 詳細モーダル ---
+    // --- カレンダー ---
     function switchHistoryView(view) {
         document.getElementById('view-list-btn').classList.toggle('active', view === 'list');
         document.getElementById('view-cal-btn').classList.toggle('active', view === 'calendar');
@@ -530,7 +530,7 @@
         document.getElementById('day-modal').classList.add('show');
     }
 
-    // --- 分析機能（完全復旧） ---
+    // --- 分析 ---
     function switchChartType(type) {
         currentChartType = type;
         document.getElementById('toggle-luck').classList.remove('active');
@@ -706,7 +706,39 @@
         });
     }
 
-    // --- データ管理 ---
+    // --- その他 ---
+    function hasConsecutiveDays(data, days) {
+        if(data.length < days) return false;
+        const dates = [...new Set(data.map(e => e.date))].sort();
+        let c = 1;
+        for(let i=1; i<dates.length; i++) {
+            if( (new Date(dates[i]) - new Date(dates[i-1]))/86400000 === 1 ) c++; else c=1;
+            if(c >= days) return true;
+        }
+        return false;
+    }
+    function hasConsecutiveResult(data, targets, count) {
+        if(data.length < count) return false;
+        const s = [...data].sort((a,b)=>new Date(a.date)-new Date(b.date));
+        let c = 0;
+        for(let i=0; i<s.length; i++) {
+            if(targets.includes(s[i].result)) c++; else c=0;
+            if(c >= count) return true;
+        }
+        return false;
+    }
+
+    function renderBadges() {
+        const c = document.getElementById('badge-container'); c.innerHTML = '';
+        BADGES.forEach(b => {
+            const div = document.createElement('div');
+            const unlocked = b.check(entries);
+            div.className = `badge-item badge-rank-${b.rank} ${unlocked ? 'unlocked' : ''}`;
+            div.innerHTML = `<div style="font-size:28px;">${b.icon}</div><div style="font-size:10px; font-weight:bold; line-height:1.2;">${b.name}</div><div style="font-size:9px; margin-top:2px;">${b.desc}</div>`;
+            c.appendChild(div);
+        });
+    }
+
     function exportData() {
         const blob = new Blob([JSON.stringify(entries, null, 2)], {type: "application/json"});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `omikuji_backup.json`; a.click();
