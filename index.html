@@ -528,7 +528,7 @@
         document.getElementById('day-modal').classList.add('show');
     }
 
-    // --- 分析 (★修正: 人物別スタックグラフ復活) ---
+    // --- 分析 (★修正: 人物別スタックグラフ) ---
     function switchChartType(type) {
         currentChartType = type;
         document.getElementById('toggle-luck').classList.remove('active');
@@ -553,7 +553,6 @@
 
         const person = document.getElementById('filter-person').value;
         let targetData = entries;
-        // ALLでも個別フィルタリングはしない（全データから人物別に集計するため）
         if(person !== 'ALL') targetData = entries.filter(e => e.name === person);
 
         const persons = person === 'ALL' ? [...new Set(targetData.map(e => e.name))].sort() : [person];
@@ -561,59 +560,47 @@
         const txtColor = isDark ? '#fff' : '#000';
         const colors = ['#007AFF', '#FF3B30', '#34C759', '#FF9500', '#5856D6', '#FF2D55', '#AF52DE'];
 
+        // 運勢または神社のカテゴリリストを用意
+        let labels = [];
+        let datasets = [];
+
         if (currentChartType === 'luck') {
-            const lucks = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
-            // 人物ごとのデータセットを作成（スタック）
-            const datasets = persons.map((p, i) => ({
+            labels = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
+            datasets = persons.map((p, i) => ({
                 label: p,
-                data: lucks.map(l => targetData.filter(e => e.name === p && e.result === l).length),
+                data: labels.map(l => targetData.filter(e => e.name === p && e.result === l).length),
                 backgroundColor: colors[i % colors.length],
                 borderColor: isDark ? '#333' : '#fff',
                 borderWidth: 1
             }));
-
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: lucks, datasets: datasets },
-                options: {
-                    indexAxis: 'y', 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { stacked: true, ticks: { color: txtColor, stepSize:1 } },
-                        y: { stacked: true, ticks: { color: txtColor, font:{weight:'bold'} } }
-                    },
-                    plugins: { legend: { display: true, position:'bottom', labels:{color:txtColor} } }
-                }
-            });
         } else {
-            // 神社グラフ（ランキング形式）
+            // 神社グラフ (Top 10)
             const sCounts = {}; targetData.forEach(e => { sCounts[e.shrine] = (sCounts[e.shrine] || 0) + 1; });
-            const sorted = Object.keys(sCounts).sort((a,b) => sCounts[b] - sCounts[a]).slice(0, 10);
+            labels = Object.keys(sCounts).sort((a,b) => sCounts[b] - sCounts[a]).slice(0, 10);
             
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: sorted,
-                    datasets: [{
-                        label: '参拝回数',
-                        data: sorted.map(s => sCounts[s]),
-                        backgroundColor: '#FF3B30',
-                        barPercentage: 0.6
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { ticks: { color: txtColor, stepSize:1 } },
-                        y: { ticks: { color: txtColor, font:{weight:'bold'} } }
-                    },
-                    plugins: { legend: { display: false } }
-                }
-            });
+            datasets = persons.map((p, i) => ({
+                label: p,
+                data: labels.map(s => targetData.filter(e => e.name === p && e.shrine === s).length),
+                backgroundColor: colors[i % colors.length],
+                borderColor: isDark ? '#333' : '#fff',
+                borderWidth: 1
+            }));
         }
+
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: labels, datasets: datasets },
+            options: {
+                indexAxis: 'y', 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, ticks: { color: txtColor, stepSize:1 } },
+                    y: { stacked: true, ticks: { color: txtColor, font:{weight:'bold'} } }
+                },
+                plugins: { legend: { display: true, position:'bottom', labels:{color:txtColor} } }
+            }
+        });
         document.getElementById('analysis-summary').textContent = `対象データ: ${targetData.length}件`;
     }
 
@@ -621,7 +608,7 @@
     function shareText(id) {
         const e = entries.find(x => x.id === id);
         if(!e) return;
-        const text = `⛩️ おみくじ結果\n${e.date} ${e.shrine}\n運勢: 【${e.result}】\n\n#おみくじ管理`;
+        const text = `⛩️ おみくじ結果\n${e.date} ${e.shrine}\n運勢: 【${e.result}】\n\n#おみくじ手帖`;
         if(navigator.share) {
             navigator.share({ title: 'おみくじ', text: text }).catch(console.error);
         } else {
@@ -636,7 +623,6 @@
         document.fonts.load(`1em "${fontName}"`).then(() => {
             drawGoshuin(currentGoshuinEntry);
         }).catch(() => {
-            console.log('Font load fallback');
             drawGoshuin(currentGoshuinEntry);
         });
         drawGoshuin(currentGoshuinEntry);
