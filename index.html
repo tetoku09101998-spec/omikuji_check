@@ -16,7 +16,7 @@
     <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FF3B30'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E⛩️%3C/text%3E%3C/svg%3E">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&family=Yuji+Syuku&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&family=Yuji+Boku&display=swap" rel="stylesheet">
     <style>
         /* --- 配色設定 --- */
         :root {
@@ -309,7 +309,6 @@
         }
         .badge-item.unlocked { opacity: 1; filter: grayscale(0%); background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,255,255,0.5) 100%); }
         
-        /* ランク別スタイル */
         .badge-rank-1.unlocked { border-color: var(--bronze); box-shadow: 0 2px 5px rgba(205,127,50,0.3); }
         .badge-rank-2.unlocked { border-color: var(--silver); box-shadow: 0 3px 8px rgba(192,192,192,0.4); background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%); }
         .badge-rank-3.unlocked { border-color: var(--gold); box-shadow: 0 4px 10px rgba(255,215,0,0.5); background: linear-gradient(135deg, #fffcf0 0%, #fffae0 100%); }
@@ -370,7 +369,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ<span class="version-badge">ver 3.0</span></h1>
+    <h1>⛩️ おみくじ<span class="version-badge">ver 3.1</span></h1>
     <button class="theme-toggle" onclick="toggleTheme()">🌗 切替</button>
 </header>
 
@@ -540,30 +539,22 @@
     let currentChartType = 'luck';
     let currentCalDate = new Date(); 
 
-    // --- 称号データ（ランク付き） ---
-    // rank: 1=Bronze, 2=Silver, 3=Gold, 4=Platinum
     const BADGES = [
         { id: 'first_step', name: '初めの一歩', icon: '🐣', desc: '初めて記録した', rank: 1, check: (d) => d.length >= 1 },
         { id: 'shrine_walker', name: '参拝愛好家', icon: '🚶', desc: '記録が10回に到達', rank: 1, check: (d) => d.length >= 10 },
         { id: 'shrine_expert', name: '神主見習い', icon: '⛩️', desc: '記録が30回に到達', rank: 2, check: (d) => d.length >= 30 },
         { id: 'shrine_master', name: '神の使い', icon: '🧚', desc: '記録が50回に到達', rank: 3, check: (d) => d.length >= 50 },
         { id: 'shrine_legend', name: '生きる伝説', icon: '🐲', desc: '記録が100回に到達', rank: 4, check: (d) => d.length >= 100 },
-        
         { id: 'lucky_beginner', name: '小さな幸せ', icon: '✨', desc: '大吉を1回引く', rank: 1, check: (d) => d.some(e => e.result === '大吉') },
         { id: 'lucky_five', name: '強運の持ち主', icon: '🌟', desc: '大吉を合計5回引く', rank: 2, check: (d) => d.filter(e => e.result === '大吉').length >= 5 },
         { id: 'lucky_ten', name: '大吉ハンター', icon: '👑', desc: '大吉を合計10回引く', rank: 3, check: (d) => d.filter(e => e.result === '大吉').length >= 10 },
-        
         { id: 'bad_luck_guardian', name: '厄除け大師', icon: '🛡️', desc: '凶または大凶を引く', rank: 1, check: (d) => d.some(e => ['凶','大凶'].includes(e.result)) },
         { id: 'bad_luck_survivor', name: '不屈の精神', icon: '❤️‍🔥', desc: '凶・大凶を合計5回引く', rank: 2, check: (d) => d.filter(e => ['凶','大凶'].includes(e.result)).length >= 5 },
-        
         { id: 'combo_3', name: '三日坊主卒業', icon: '🔥', desc: '3日連続で記録', rank: 2, check: (d) => hasConsecutiveDays(d, 3) },
         { id: 'combo_7', name: '習慣の鬼', icon: '👹', desc: '7日連続で記録', rank: 3, check: (d) => hasConsecutiveDays(d, 7) },
-        
         { id: 'traveler', name: '神社巡り', icon: '🗺️', desc: '5箇所の違う神社に行く', rank: 2, check: (d) => new Set(d.map(e => e.shrine)).size >= 5 },
         { id: 'explorer', name: '聖地開拓者', icon: '🧭', desc: '10箇所の違う神社に行く', rank: 3, check: (d) => new Set(d.map(e => e.shrine)).size >= 10 },
-        
         { id: 'new_year', name: 'あけおめ！', icon: '🎍', desc: '三が日に参拝', rank: 2, check: (d) => d.some(e => { const date = new Date(e.date); return date.getMonth() === 0 && date.getDate() <= 3; })},
-        
         { id: 'master_of_omikuji', name: '御神籤の神', icon: '💎', desc: 'この称号以外の全てを獲得する', rank: 4, check: (d) => { const others = BADGES.filter(b => b.id !== 'master_of_omikuji'); return others.every(b => b.check(d)); } }
     ];
 
@@ -584,7 +575,7 @@
         document.getElementById('filter-end').valueAsDate = today;
 
         updateUI();
-        updateStreak(); // ストリーク計算
+        updateStreak(); 
         renderBadges();
     };
 
@@ -620,7 +611,7 @@
     function saveData() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
         updateUI();
-        updateStreak(); // 保存時にも再計算
+        updateStreak(); 
         renderBadges();
     }
 
@@ -644,41 +635,27 @@
         });
     }
 
-    // --- ストリーク計算ロジック ---
     function updateStreak() {
         if(entries.length === 0) {
             document.getElementById('streak-days').textContent = "0";
             return;
         }
-        
-        // 日付の重複を除去し、新しい順にソート
         const uniqueDates = [...new Set(entries.map(e => e.date))].sort((a,b) => new Date(b) - new Date(a));
         const todayStr = new Date().toISOString().split('T')[0];
         const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
-        // 最新の記録が「今日」または「昨日」でない場合、ストリークは途切れている
         if(uniqueDates[0] !== todayStr && uniqueDates[0] !== yesterdayStr) {
             document.getElementById('streak-days').textContent = "0";
             return;
         }
 
         let streak = 1;
-        // 今日から（または昨日から）過去へ遡って連続性をチェック
-        // 起点となるインデックス
-        let currentIndex = 0;
-        
-        // 2件以上ある場合のみチェック
         for(let i = 0; i < uniqueDates.length - 1; i++) {
             const current = new Date(uniqueDates[i]);
             const prev = new Date(uniqueDates[i+1]);
             const diffTime = current - prev;
             const diffDays = diffTime / (1000 * 60 * 60 * 24);
-
-            if(Math.round(diffDays) === 1) {
-                streak++;
-            } else {
-                break; 
-            }
+            if(Math.round(diffDays) === 1) streak++; else break; 
         }
         document.getElementById('streak-days').textContent = streak;
     }
@@ -701,7 +678,6 @@
         BADGES.forEach(badge => {
             const isUnlocked = badge.check(entries);
             const div = document.createElement('div');
-            // ランク別クラス付与
             let classes = `badge-item badge-rank-${badge.rank} ${isUnlocked ? 'unlocked' : ''}`;
             div.className = classes;
             div.innerHTML = `<span class="badge-icon">${badge.icon}</span><span class="badge-name">${badge.name}</span><span class="badge-desc">${badge.desc}</span>`;
@@ -709,13 +685,22 @@
         });
     }
 
-    // --- 御朱印メーカー (Canvas描画) ---
+    // --- 御朱印メーカー (縦書きCanvas実装) ---
     function openGoshuinModal(id) {
         const entry = entries.find(e => e.id === id);
         if(!entry) return;
-
         document.getElementById('goshuin-modal').classList.add('show');
-        drawGoshuin(entry);
+        // フォント読み込み待ちを考慮して少し遅延させる（初回用）
+        document.fonts.load('1em "Yuji Boku"').then(() => drawGoshuin(entry));
+    }
+
+    function drawVerticalText(ctx, text, x, y, fontSize, lineHeight) {
+        let cursorY = y;
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            ctx.fillText(char, x, cursorY);
+            cursorY += lineHeight;
+        }
     }
 
     function drawGoshuin(entry) {
@@ -724,70 +709,96 @@
         const width = canvas.width;
         const height = canvas.height;
 
-        // 背景（和紙風）
+        // 背景（和紙風オフホワイト）
         ctx.fillStyle = "#fffcf2";
         ctx.fillRect(0, 0, width, height);
         
-        // 枠線（赤枠）
+        // 枠線
         ctx.strokeStyle = "#e60033";
         ctx.lineWidth = 4;
         ctx.strokeRect(10, 10, width - 20, height - 20);
 
-        // フォント設定
-        const fontBase = "'Yuji Syuku', 'Hiragino Mincho ProN', serif";
+        const fontBase = "'Yuji Boku', serif"; // 筆フォント
 
-        // 中央の朱印（円）
+        // --- 中央：朱印（円） ---
         ctx.beginPath();
-        ctx.arc(width/2, height/2, 80, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(230, 0, 51, 0.2)"; // 薄い赤
-        ctx.lineWidth = 5;
+        ctx.arc(width/2, height/2 + 20, 80, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(230, 0, 51, 0.15)";
+        ctx.lineWidth = 6;
         ctx.stroke();
-
-        // テキスト描画 (縦書き風配置)
-        ctx.fillStyle = "#333";
-        ctx.textAlign = "center";
-
-        // 日付 (右上)
-        ctx.font = `20px ${fontBase}`;
-        ctx.fillStyle = "#555";
-        ctx.fillText(entry.date.replace(/-/g, '.'), width - 60, 60);
-        ctx.fillText("奉拝", width - 60, 90);
-
-        // 神社名 (中央・縦書き風) - 簡易的に横書きで大きく配置
-        // 本格的な縦書きは複雑なので、デザインとして「大きな横書き」で魅せる
-        ctx.font = `bold 32px ${fontBase}`;
-        ctx.fillStyle = "#000";
         
-        // 神社名が長い場合の改行処理
+        // 中央文字：神璽（背景透かし）
+        ctx.fillStyle = "rgba(230, 0, 51, 0.15)";
+        ctx.font = `bold 80px ${fontBase}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("神璽", width/2, height/2 + 20);
+
+        // --- 文字描画 ---
+        ctx.fillStyle = "#222";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top"; // 縦書き用にTop基準
+
+        // 1. 右側：奉拝
+        ctx.font = `30px ${fontBase}`;
+        drawVerticalText(ctx, "奉拝", width - 60, 60, 30, 35);
+
+        // 2. 中央：神社名（縦書き・大きく）
         const shrineName = entry.shrine;
-        if(shrineName.length > 5) {
-            ctx.fillText(shrineName.substring(0, 5), width/2, height/2 - 20);
-            ctx.fillText(shrineName.substring(5), width/2, height/2 + 20);
-        } else {
-            ctx.fillText(shrineName, width/2, height/2);
-        }
+        ctx.font = `bold 42px ${fontBase}`;
+        // 中央配置のためのX座標
+        const centerX = width / 2;
+        // 文字数に応じて開始Yを調整（真ん中にくるように）
+        const totalHeight = shrineName.length * 45; 
+        const startY = (height - totalHeight) / 2;
+        
+        drawVerticalText(ctx, shrineName, centerX, startY, 42, 45);
 
-        // 運勢 (中央下・赤文字)
-        ctx.font = `bold 48px ${fontBase}`;
-        ctx.fillStyle = "#e60033";
-        ctx.fillText(entry.result, width/2, height/2 + 80);
+        // 3. 左側：日付（縦書き）
+        // 日付フォーマット変換 2026-01-16 -> 令和八年一月十六日 (簡易的に数字のまま縦書き)
+        const d = new Date(entry.date);
+        const dateText = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+        ctx.font = `20px ${fontBase}`;
+        // 下の方に配置
+        drawVerticalText(ctx, dateText, 60, 100, 20, 25);
 
-        // スタンプ風「おみくじ管理」 (左下)
+        // 4. 左下：運勢印（赤ハンコ風）
+        const resultText = entry.result; // "大吉"など
+        const stampSize = 70;
+        const stampX = 40;
+        const stampY = height - 100;
+
         ctx.save();
-        ctx.translate(60, height - 60);
-        ctx.rotate(-0.2);
-        ctx.fillStyle = "rgba(230, 0, 51, 0.8)";
-        ctx.fillRect(-40, -15, 80, 30);
-        ctx.fillStyle = "#fff";
-        ctx.font = `bold 16px ${fontBase}`;
-        ctx.fillText("おみくじ帳", 0, 5);
+        ctx.translate(stampX, stampY);
+        ctx.rotate(-0.1); // 少し傾ける
+        
+        // 四角い枠
+        ctx.strokeStyle = "#d60000";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(-35, -35, 70, 70);
+        
+        // 中身の文字
+        ctx.fillStyle = "#d60000";
+        ctx.font = `bold 32px ${fontBase}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        
+        // 2文字なら縦、3文字以上なら適当に調整
+        if(resultText.length === 2) {
+            ctx.fillText(resultText[0], 0, -15);
+            ctx.fillText(resultText[1], 0, 15);
+        } else {
+            // "中吉"などはそのまま、長い場合は縮小
+            ctx.font = `bold 24px ${fontBase}`;
+            ctx.fillText(resultText, 0, 0);
+        }
         ctx.restore();
     }
 
     function downloadGoshuin() {
         const canvas = document.getElementById('goshuin-canvas');
         const link = document.createElement('a');
-        link.download = 'omikuji_goshuin.png';
+        link.download = `goshuin_${Date.now()}.png`;
         link.href = canvas.toDataURL();
         link.click();
     }
