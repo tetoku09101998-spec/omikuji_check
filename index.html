@@ -17,1019 +17,325 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
-
     <style>
         /* --- 配色設定 --- */
         :root {
-            --primary: #007AFF;
-            --bg: #F2F2F7;
-            --card-bg: #FFFFFF;
-            --input-bg: #EFEFF4;
-            --input-border: #C7C7CC;
-            --text: #000000;
-            --text-sub: #333333;
-            --danger: #FF3B30;
-            --gold: #FFD700;
-            --silver: #C0C0C0;
-            --bronze: #CD7F32;
-            --platinum: #E5E4E2;
-            --radius: 12px;
+            --primary: #007AFF; --bg: #F2F2F7; --card-bg: #FFFFFF;
+            --input-bg: #EFEFF4; --input-border: #C7C7CC;
+            --text: #000000; --text-sub: #333333; --danger: #FF3B30;
+            --gold: #FFD700; --silver: #C0C0C0; --bronze: #CD7F32;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
 
-        /* --- カスタムフォント読み込み --- */
+        /* --- 中森工芸フォント --- */
         @font-face {
             font-family: 'GoshuinFont';
-            src: url('goshuin.ttf') format('truetype');
+            src: url('TTEdit1　aaa中森工芸２０１８1212.ttf') format('truetype');
         }
 
         [data-theme="dark"] {
-            --primary: #0A84FF;
-            --bg: #000000;
-            --card-bg: #1C1C1E;
-            --input-bg: #3A3A3C;
-            --input-border: #636366;
-            --text: #FFFFFF;
-            --text-sub: #D1D1D6;
+            --primary: #0A84FF; --bg: #000000; --card-bg: #1C1C1E;
+            --input-bg: #3A3A3C; --input-border: #636366; --text: #FFFFFF; --text-sub: #D1D1D6;
         }
 
-        /* --- スタイル --- */
         body {
-            font-family: 'Noto Sans JP', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg);
-            color: var(--text);
-            font-size: 15px; 
-            line-height: 1.5;
-            padding-top: var(--safe-top);
-            padding-bottom: calc(80px + var(--safe-bottom));
+            font-family: 'Noto Sans JP', sans-serif; margin: 0; padding: 0;
+            background-color: var(--bg); color: var(--text); font-size: 15px;
+            padding-top: var(--safe-top); padding-bottom: calc(80px + var(--safe-bottom));
             overscroll-behavior-y: none;
         }
 
         header {
-            background: var(--card-bg);
-            padding: 12px 16px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--input-border);
-            height: 44px;
+            background: var(--card-bg); padding: 12px 16px; position: sticky; top: 0;
+            z-index: 100; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--input-border); height: 44px;
         }
 
         h1 { font-size: 17px; margin: 0; font-weight: 700; }
-        
-        .version-badge {
-            font-size: 10px;
-            background: var(--input-bg);
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: var(--text-sub);
-            margin-left: 8px;
-            vertical-align: middle;
-        }
+        .version-badge { font-size: 10px; background: var(--input-bg); padding: 2px 6px; border-radius: 4px; color: var(--text-sub); margin-left: 8px; vertical-align: middle; }
 
-        /* ストリーク表示エリア */
         .streak-container {
             background: linear-gradient(135deg, #FF9500 0%, #FF3B30 100%);
-            color: white;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(255, 59, 48, 0.3);
+            color: white; padding: 12px; border-radius: 12px; margin: 10px 16px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         .streak-count { font-size: 24px; font-weight: 800; }
-        .streak-label { font-size: 12px; font-weight: bold; opacity: 0.9; }
-        .streak-icon { font-size: 24px; }
 
         .container { width: 100%; padding: 0; }
-
-        .card {
-            background: var(--card-bg);
-            padding: 16px;
-            margin-bottom: 12px;
-            border-bottom: 1px solid var(--input-border);
-        }
-
+        .card { background: var(--card-bg); padding: 16px; margin-bottom: 12px; border-bottom: 1px solid var(--input-border); }
         .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 6px; }
 
-        label {
-            display: block;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-sub);
-            margin-bottom: 6px;
+        /* 入力スタイル */
+        input[type="text"], input[type="date"], select, textarea {
+            width: 100%; padding: 12px; font-size: 16px; font-weight: 500;
+            border: 1px solid var(--input-border); border-radius: 8px; box-sizing: border-box;
+            background: var(--input-bg); color: var(--text); outline: none;
         }
-
-        input[type="text"],
-        input[type="date"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 10px 12px;
-            font-size: 16px;
-            font-weight: 500;
-            border: 1px solid var(--input-border);
-            border-radius: 8px;
-            box-sizing: border-box;
-            background: var(--input-bg);
-            color: var(--text);
-            outline: none;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-
         select {
-            padding-right: 30px;
+            -webkit-appearance: none; appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 14px;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--primary);
-            background: var(--card-bg);
+            background-repeat: no-repeat; background-position: right 12px center; background-size: 14px;
         }
 
         button.btn-primary {
-            display: block;
-            width: 92%;
-            margin: 10px auto;
-            padding: 14px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,122,255, 0.3);
-        }
-        button.btn-primary:active { transform: scale(0.98); opacity: 0.9; }
-
-        .tabs {
-            display: flex;
-            background: var(--card-bg);
-            padding: 8px;
-            border-bottom: 1px solid var(--input-border);
-            position: sticky;
-            top: 68px;
-            z-index: 90;
-            overflow-x: auto;
-        }
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 8px 4px;
-            font-size: 13px;
-            white-space: nowrap;
-            cursor: pointer;
-            border-radius: 6px;
-            color: var(--text-sub);
-            font-weight: 700;
-            margin: 0 2px;
-        }
-        .tab.active {
-            background: var(--bg);
-            color: var(--primary);
+            display: block; width: 92%; margin: 10px auto; padding: 14px;
+            background: var(--primary); color: white; border: none; border-radius: 10px;
+            font-size: 16px; font-weight: 700; cursor: pointer;
         }
 
-        .view-toggle {
-            display: flex;
-            margin: 10px 16px;
-            border: 1px solid var(--primary);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        .view-btn {
-            flex: 1;
-            padding: 8px;
-            text-align: center;
-            font-size: 13px;
-            font-weight: bold;
-            background: var(--card-bg);
-            color: var(--primary);
-            cursor: pointer;
-        }
-        .view-btn.active {
-            background: var(--primary);
-            color: white;
-        }
+        .tabs { display: flex; background: var(--card-bg); padding: 8px; border-bottom: 1px solid var(--input-border); position: sticky; top: 68px; z-index: 90; }
+        .tab { flex: 1; text-align: center; padding: 10px 4px; font-size: 13px; cursor: pointer; border-radius: 8px; color: var(--text-sub); font-weight: 700; }
+        .tab.active { background: var(--bg); color: var(--primary); }
 
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-            padding: 10px;
-            background: var(--card-bg);
-        }
-        .cal-header {
-            text-align: center;
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--text-sub);
-            padding-bottom: 8px;
-        }
-        .cal-day {
-            aspect-ratio: 1;
-            border: 1px solid var(--input-border);
-            border-radius: 4px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            position: relative;
-            cursor: pointer; 
-        }
-        .cal-day.has-entry { background-color: rgba(0, 122, 255, 0.05); }
-        .cal-day.has-entry:active { background-color: rgba(0, 122, 255, 0.2); }
-        .cal-day.today { border-color: var(--primary); background: rgba(0,122,255,0.1); }
-        .cal-mark { width: 8px; height: 8px; border-radius: 50%; margin-top: 2px; }
-        .mark-dai-kichi { background: #FF3B30; }
-        .mark-kichi { background: #FF9500; }
-        .mark-kyo { background: #5856D6; }
-
-        /* モーダル */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s, visibility 0.2s;
-            backdrop-filter: blur(4px);
-        }
-        .modal-overlay.show { opacity: 1; visibility: visible; }
-        .modal-content {
-            background: var(--card-bg);
-            width: 85%;
-            max-width: 400px;
-            max-height: 90%;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            overflow-y: auto;
-            position: relative;
-            border: 1px solid var(--input-border);
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid var(--input-border);
-            padding-bottom: 10px;
-        }
-        .modal-title { font-size: 18px; font-weight: 700; }
-        .modal-close { background: none; border: none; font-size: 24px; color: var(--text-sub); cursor: pointer; padding: 0 8px; }
-        .modal-entry { background: var(--bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--input-border); }
-
-        /* 称号リスト */
-        .badge-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; padding: 10px; }
-        .badge-item {
-            background: var(--card-bg);
-            border: 2px solid var(--input-border);
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            opacity: 0.5;
-            filter: grayscale(100%);
-            transition: all 0.3s;
-            position: relative;
-        }
-        .badge-item.unlocked { opacity: 1; filter: grayscale(0%); background: linear-gradient(135deg, var(--card-bg) 0%, rgba(255,255,255,0.5) 100%); }
-        
-        .badge-rank-1.unlocked { border-color: var(--bronze); box-shadow: 0 2px 5px rgba(205,127,50,0.3); }
-        .badge-rank-2.unlocked { border-color: var(--silver); box-shadow: 0 3px 8px rgba(192,192,192,0.4); background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%); }
-        .badge-rank-3.unlocked { border-color: var(--gold); box-shadow: 0 4px 10px rgba(255,215,0,0.5); background: linear-gradient(135deg, #fffcf0 0%, #fffae0 100%); }
-        .badge-rank-4.unlocked { 
-            border-color: var(--primary); 
-            box-shadow: 0 0 15px rgba(0,122,255,0.5); 
-            background: linear-gradient(135deg, #f0f8ff 0%, #e6f2ff 100%);
-            animation: pulse 2s infinite; 
-        }
-
-        @keyframes pulse { 0% { box-shadow: 0 0 10px rgba(0,122,255, 0.3); } 50% { box-shadow: 0 0 20px rgba(0,122,255, 0.6); } 100% { box-shadow: 0 0 10px rgba(0,122,255, 0.3); } }
-        .badge-icon { font-size: 32px; margin-bottom: 4px; display:block;}
-        .badge-name { font-size: 12px; font-weight: bold; display: block; line-height:1.2; }
-        .badge-desc { font-size: 10px; color: var(--text-sub); display: block; margin-top:4px;}
-
-        /* 御朱印キャンバスエリア */
-        .goshuin-preview {
-            width: 100%;
-            height: auto;
-            border: 1px solid var(--input-border);
-            border-radius: 8px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .history-item { background: var(--card-bg); padding: 12px 16px; border-bottom: 1px solid var(--input-border); display: flex; flex-direction: column; gap: 8px; }
+        .history-item { background: var(--card-bg); padding: 16px; border-bottom: 1px solid var(--input-border); margin-bottom: 1px; }
         .history-top { display: flex; justify-content: space-between; align-items: flex-start; }
-        .history-info h3 { font-size: 16px; margin: 0 0 4px 0; font-weight:700; }
-        .history-info .date { font-size: 12px; color: var(--text-sub); }
-        .history-info .person-tag { display: inline-block; font-size: 11px; background: var(--input-bg); color: var(--primary); padding: 2px 6px; border-radius: 4px; margin-top: 4px; border: 1px solid var(--input-border); }
-        .fortune-badge { font-size: 14px; padding: 4px 10px; border-radius: 6px; min-width: 60px; text-align: center; font-weight: 700; }
-        .action-row { display: flex; justify-content: flex-end; gap: 12px; margin-top: 4px; }
-        .action-btn { background: none; border: none; color: var(--text-sub); font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px; background: var(--input-bg); }
-        .share-btn { color: var(--primary); font-weight: bold; }
-        .delete-btn { color: var(--danger); }
-        .chart-toggle-row { display: flex; gap: 10px; margin-bottom: 16px; }
-        .toggle-btn { flex: 1; padding: 10px; font-size: 14px; border: 1px solid var(--input-border); background: var(--bg); color: var(--text-sub); border-radius: 8px; cursor: pointer; font-weight: 700; text-align: center; }
-        .toggle-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-        .date-range-row { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
-        .date-range-row input[type="date"] { flex: 1; padding: 8px; font-size: 14px; }
-        .filter-row { margin-bottom: 16px; }
-        .chart-container { position: relative; height: 350px; width: 100%; }
-        .theme-toggle { background: var(--bg); border: 1px solid var(--input-border); color: var(--text); padding: 4px 12px; border-radius: 14px; font-weight: 500; font-size: 12px; }
-        .hidden { display: none; }
-        .settings-area { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
-        .btn-small { padding: 12px; font-size: 14px; background: var(--bg); border: 1px solid var(--input-border); color: var(--text); border-radius: 8px; text-align: center; font-weight: 700; }
-        .btn-x { background: #000; color: #fff; border: 1px solid #000; }
-        
-        .rank-dai-kichi { color: #D32F2F; background: #FFEBEE; border: 1px solid #D32F2F; }
-        .rank-kichi     { color: #E65100; background: #FFF3E0; border: 1px solid #E65100; }
-        .rank-chu-kichi { color: #F57C00; background: #FFF8E1; border: 1px solid #F57C00; }
-        .rank-sho-kichi { color: #2E7D32; background: #E8F5E9; border: 1px solid #2E7D32; }
-        .rank-sue-kichi { color: #1565C0; background: #E3F2FD; border: 1px solid #1565C0; }
-        .rank-kyo       { color: #6A1B9A; background: #F3E5F5; border: 1px solid #6A1B9A; }
-        .rank-dai-kyo   { color: #000000; background: #EEEEEE; border: 1px solid #000000; }
-        [data-theme="dark"] .rank-dai-kichi { background: rgba(255, 59, 48, 0.2); color: #FF453A; border-color: #FF453A; }
+        .fortune-badge { font-size: 14px; padding: 4px 12px; border-radius: 6px; font-weight: 700; border: 1px solid; }
 
+        .badge-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; padding: 10px; }
+        .badge-item { background: var(--card-bg); border: 2px solid var(--input-border); border-radius: 12px; padding: 12px; text-align: center; opacity: 0.3; filter: grayscale(100%); }
+        .badge-item.unlocked { opacity: 1; filter: grayscale(0%); border-color: var(--bronze); }
+        .badge-rank-4.unlocked { border-color: var(--primary); box-shadow: 0 0 10px var(--primary); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: none; justify-content: center; align-items: center; }
+        .modal-overlay.show { display: flex; }
+        .modal-content { background: var(--card-bg); width: 90%; max-width: 400px; border-radius: 20px; padding: 20px; text-align: center; }
+        .goshuin-preview { width: 100%; border-radius: 10px; margin-bottom: 15px; border: 1px solid #ccc; }
+        .hidden { display: none; }
+        .action-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+        .btn-small { padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; background: var(--input-bg); color: var(--text); }
+        .rank-dai-kichi { color: #D32F2F; background: #FFEBEE; border-color: #D32F2F; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>⛩️ おみくじ<span class="version-badge">ver 3.9</span></h1>
-    <button class="theme-toggle" onclick="toggleTheme()">🌗 切替</button>
+    <h1>⛩️ おみくじ<span class="version-badge">ver 3.8</span></h1>
+    <button onclick="toggleTheme()" style="background:none; border:none; font-size:20px;">🌗</button>
 </header>
 
 <div class="container">
-
     <div class="tabs">
         <div class="tab active" onclick="switchTab('input')">🖊️ 記録</div>
         <div class="tab" onclick="switchTab('history')">📜 履歴</div>
         <div class="tab" onclick="switchTab('analysis')">📊 分析</div>
         <div class="tab" onclick="switchTab('collection')">🏆 称号</div>
-        <div class="tab" onclick="switchTab('settings')">⚙️ 設定</div>
     </div>
 
     <div id="tab-input">
-        <div class="card">
-            <div class="streak-container">
-                <div class="streak-icon">🔥</div>
-                <div>
-                    <div class="streak-count"><span id="streak-days">0</span>日</div>
-                    <div class="streak-label">連続参拝中</div>
-                </div>
+        <div class="streak-container">
+            <div style="font-size:24px;">🔥</div>
+            <div>
+                <div class="streak-count"><span id="streak-days">0</span>日</div>
+                <div style="font-size:11px; font-weight:bold;">連続参拝中</div>
             </div>
-
+        </div>
+        <div class="card">
             <div class="form-group">
-                <label>👤 名前（誰が？）</label>
+                <label>👤 名前</label>
                 <input type="text" id="input-name" placeholder="例: 自分" list="name-list" autocomplete="off">
                 <datalist id="name-list"></datalist>
             </div>
-
             <div class="form-group">
                 <label>📅 参拝日</label>
                 <input type="date" id="input-date">
             </div>
-
             <div class="form-group">
                 <label>⛩️ 神社名</label>
                 <input type="text" id="input-shrine" placeholder="例: 明治神宮" list="shrine-list" autocomplete="off">
                 <datalist id="shrine-list"></datalist>
             </div>
-
             <div class="form-group">
                 <label>🔮 運勢</label>
                 <select id="input-result">
-                    <option value="大吉">大吉</option>
-                    <option value="吉">吉</option>
-                    <option value="中吉">中吉</option>
-                    <option value="小吉">小吉</option>
-                    <option value="末吉">末吉</option>
-                    <option value="凶">凶</option>
-                    <option value="大凶">大凶</option>
+                    <option value="大吉">大吉</option><option value="吉">吉</option><option value="中吉">中吉</option>
+                    <option value="小吉">小吉</option><option value="末吉">末吉</option><option value="凶">凶</option><option value="大凶">大凶</option>
                 </select>
             </div>
-
-            <div class="form-group">
-                <label>📝 メモ</label>
-                <textarea id="input-note" rows="3" placeholder="ここに入力"></textarea>
-            </div>
+            <div class="form-group"><label>📝 メモ</label><textarea id="input-note" rows="2"></textarea></div>
         </div>
-        <button class="btn-primary" onclick="addEntry()">💾 保存する！！</button>
+        <button class="btn-primary" onclick="addEntry()">💾 記録を保存！</button>
     </div>
 
     <div id="tab-history" class="hidden">
-        <div class="view-toggle">
-            <div id="view-list-btn" class="view-btn active" onclick="switchHistoryView('list')">リスト</div>
-            <div id="view-cal-btn" class="view-btn" onclick="switchHistoryView('calendar')">カレンダー</div>
-        </div>
-        <div id="history-list-view">
-            <div style="padding: 0 16px; text-align:right; font-size:12px; color:var(--text-sub);">
-                合計: <span id="entry-count">0</span>件
-            </div>
-            <div id="history-list"></div>
-        </div>
-        <div id="history-cal-view" class="hidden">
-            <div style="display:flex; justify-content:center; align-items:center; margin-bottom:10px;">
-                <button class="toggle-btn" onclick="changeCalMonth(-1)">◀</button>
-                <span id="cal-month-label" style="font-weight:bold; margin:0 15px;">2026年1月</span>
-                <button class="toggle-btn" onclick="changeCalMonth(1)">▶</button>
-            </div>
-            <div class="calendar-grid">
-                <div class="cal-header">日</div><div class="cal-header">月</div><div class="cal-header">火</div><div class="cal-header">水</div><div class="cal-header">木</div><div class="cal-header">金</div><div class="cal-header">土</div>
-                <div id="calendar-body" style="display:contents;"></div>
-            </div>
-        </div>
+        <div id="history-list"></div>
     </div>
 
     <div id="tab-analysis" class="hidden">
-        <div class="card">
-            <h2 style="font-size:16px; margin-bottom:12px;">統計・分析</h2>
-            <div class="chart-toggle-row">
-                <div id="toggle-luck" class="toggle-btn active" onclick="switchChartType('luck')">🔮 運勢</div>
-                <div id="toggle-shrine" class="toggle-btn" onclick="switchChartType('shrine')">⛩️ 神社</div>
-            </div>
-            <div class="filter-row">
-                <label>👥 表示対象</label>
-                <select id="filter-person" onchange="updateChart()">
-                    <option value="ALL">全員 (比較)</option>
-                </select>
-            </div>
-            <div class="date-range-row">
-                <input type="date" id="filter-start" onchange="updateChart()">
-                <div style="font-size:16px; font-weight:bold;">➡️</div>
-                <input type="date" id="filter-end" onchange="updateChart()">
-            </div>
-            <div class="chart-container">
-                <canvas id="mainChart"></canvas>
-            </div>
-            <p id="analysis-summary" style="text-align:center; margin-top:16px; font-size:14px; color:var(--text-sub);"></p>
-        </div>
+        <div class="card"><canvas id="mainChart"></canvas></div>
     </div>
 
     <div id="tab-collection" class="hidden">
-        <div class="card">
-            <h2 style="font-size:16px; margin-bottom:12px;">🏆 獲得バッジ</h2>
-            <div id="badge-container" class="badge-list"></div>
-        </div>
-    </div>
-
-    <div id="tab-settings" class="hidden">
-        <div class="card">
-            <h2 style="font-size:16px;">データ管理</h2>
-            <div class="settings-area">
-                <button class="btn-small" onclick="exportData()">📤 保存 (DL)</button>
-                <button class="btn-small" onclick="triggerImport()">📥 復元</button>
-                <input type="file" id="file-import" style="display:none" accept=".json" onchange="importData(this)">
-            </div>
-        </div>
-        <div class="card" style="border:1px solid var(--danger);">
-            <h2 style="color:var(--danger); font-size:16px;">危険エリア</h2>
-            <div class="settings-area">
-                <button class="btn-small" style="background:var(--danger); color:white; border:none;" onclick="clearAllData()">⚠️ 全消去</button>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<div id="day-modal" class="modal-overlay" onclick="closeModal('day-modal')">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <div class="modal-title" id="modal-date">2026/01/01</div>
-            <button class="modal-close" onclick="closeModal('day-modal')">×</button>
-        </div>
-        <div id="modal-body"></div>
+        <div id="badge-container" class="badge-list"></div>
     </div>
 </div>
 
-<div id="goshuin-modal" class="modal-overlay" onclick="closeModal('goshuin-modal')">
+<div id="goshuin-modal" class="modal-overlay" onclick="closeModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <div class="modal-title">⛩️ 御朱印メーカー</div>
-            <button class="modal-close" onclick="closeModal('goshuin-modal')">×</button>
-        </div>
-        <div style="text-align:center;">
-            <canvas id="goshuin-canvas" width="300" height="450" class="goshuin-preview"></canvas>
-            
-            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:10px;">
-                <button class="btn-primary" style="width:100%; margin:0;" onclick="shareGoshuin()">📱 シェア（画像付）</button>
-                
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-small" style="flex:1;" onclick="copyTextToClipboard()">📋 文章コピー</button>
-                    <button class="btn-small btn-x" style="flex:1;" onclick="postToX()">✖ Xを開く</button>
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-small" style="flex:1;" onclick="downloadGoshuin()">💾 保存</button>
-                    <button class="btn-small" style="flex:1;" onclick="redrawGoshuin()">🔄 書き直し</button>
-                </div>
-            </div>
-            <p style="font-size:11px; color:var(--text-sub); margin-top:5px;">※画像付きシェアができない場合は、<br>「保存」→「文章コピー」→「Xを開く」で投稿してください。</p>
+        <canvas id="goshuin-canvas" width="300" height="450" class="goshuin-preview"></canvas>
+        <div style="display:flex; justify-content:center; gap:10px;">
+            <button class="btn-primary" style="width:auto; margin:0;" onclick="downloadGoshuin()">保存</button>
+            <button class="btn-primary" style="width:auto; background:#888; margin:0;" onclick="redrawGoshuin()">再描画</button>
         </div>
     </div>
 </div>
 
 <script>
     const STORAGE_KEY = 'omikuji_app_data_v1';
-    const THEME_KEY = 'omikuji_app_theme';
-    const LAST_NAME_KEY = 'omikuji_last_name';
     let entries = [];
-    let myChart = null;
-    let currentChartType = 'luck';
-    let currentCalDate = new Date(); 
-    let currentGoshuinEntry = null; 
+    let currentGoshuinEntry = null;
 
-    // ランク定義: 1=Bronze🥉, 2=Silver🥈, 3=Gold🥇, 4=Platinum💎
+    // --- 称号データ ---
     const BADGES = [
-        { id: 'first_step', name: '初めの一歩', icon: '🐣', desc: '初めて記録した', rank: 1, check: (d) => d.length >= 1 },
-        { id: 'shrine_walker', name: '参拝愛好家', icon: '🚶', desc: '記録が10回に到達', rank: 1, check: (d) => d.length >= 10 },
-        { id: 'shrine_expert', name: '神主見習い', icon: '⛩️', desc: '記録が30回に到達', rank: 2, check: (d) => d.length >= 30 },
-        { id: 'shrine_master', name: '神の使い', icon: '🧚', desc: '記録が50回に到達', rank: 3, check: (d) => d.length >= 50 },
-        { id: 'shrine_legend', name: '生きる伝説', icon: '🐲', desc: '記録が100回に到達', rank: 4, check: (d) => d.length >= 100 },
-        { id: 'ohakudo_mairi', name: 'お百度参り', icon: '🙏', desc: '一人の記録が100回に到達', rank: 4, check: (d) => { const counts = {}; d.forEach(e => { const name = e.name || '自分'; counts[name] = (counts[name] || 0) + 1; }); return Object.values(counts).some(count => count >= 100); } },
-        { id: 'lucky_beginner', name: '小さな幸せ', icon: '✨', desc: '大吉を1回引く', rank: 1, check: (d) => d.some(e => e.result === '大吉') },
-        { id: 'lucky_five', name: '強運の持ち主', icon: '🌟', desc: '大吉を合計5回引く', rank: 2, check: (d) => d.filter(e => e.result === '大吉').length >= 5 },
-        { id: 'lucky_ten', name: '大吉ハンター', icon: '👑', desc: '大吉を合計10回引く', rank: 3, check: (d) => d.filter(e => e.result === '大吉').length >= 10 },
-        { id: 'lucky_combo_3', name: '確変モード', icon: '🎰', desc: '3回連続で大吉を引く', rank: 3, check: (d) => { if(d.length < 3) return false; const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date)); for(let i=0; i<sorted.length-2; i++) { if(sorted[i].result === '大吉' && sorted[i+1].result === '大吉' && sorted[i+2].result === '大吉') return true; } return false; }},
-        { id: 'bad_luck_guardian', name: '厄除け大師', icon: '🛡️', desc: '凶または大凶を引く', rank: 1, check: (d) => d.some(e => ['凶','大凶'].includes(e.result)) },
-        { id: 'bad_luck_survivor', name: '不屈の精神', icon: '❤️‍🔥', desc: '凶・大凶を合計5回引く', rank: 2, check: (d) => d.filter(e => ['凶','大凶'].includes(e.result)).length >= 5 },
-        { id: 'bad_combo_2', name: '泣きっ面に蜂', icon: '☔', desc: '2回連続で凶・大凶', rank: 1, check: (d) => { if(d.length < 2) return false; const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date)); for(let i=0; i<sorted.length-1; i++) { if(['凶','大凶'].includes(sorted[i].result) && ['凶','大凶'].includes(sorted[i+1].result)) return true; } return false; }},
-        { id: 'v_recovery', name: '昇り調子', icon: '📈', desc: '大凶の直後に大吉', rank: 2, check: (d) => { if(d.length < 2) return false; const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date)); for(let i=0; i<sorted.length-1; i++) { if(sorted[i].result === '大凶' && sorted[i+1].result === '大吉') return true; } return false; }},
-        { id: 'roller_coaster', name: '急転直下', icon: '🎢', desc: '大吉と大凶が連続', rank: 2, check: (d) => { if(d.length < 2) return false; const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date)); for(let i=0; i<sorted.length-1; i++) { const r1 = sorted[i].result; const r2 = sorted[i+1].result; if((r1==='大吉' && r2==='大凶') || (r1==='大凶' && r2==='大吉')) return true; } return false; }},
-        { id: 'ordinary_person', name: 'THE・凡人', icon: '🍵', desc: '吉・中・小を5連続', rank: 1, check: (d) => { if(d.length < 5) return false; const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date)); const normal = ['吉','中吉','小吉']; let streak = 0; for(let i=0; i<sorted.length; i++) { if(normal.includes(sorted[i].result)) streak++; else streak = 0; if(streak >= 5) return true; } return false; }},
-        { id: 'all_kinds', name: '運命の蒐集家', icon: '🌈', desc: '全種類の運勢をコンプリート', rank: 4, check: (d) => { const types = ['大吉','吉','中吉','小吉','末吉','凶','大凶']; const myTypes = new Set(d.map(e => e.result)); return types.every(t => myTypes.has(t)); }},
-        { id: 'new_year', name: 'あけおめ！', icon: '🎍', desc: '三が日に参拝', rank: 2, check: (d) => d.some(e => { const date = new Date(e.date); return date.getMonth() === 0 && date.getDate() <= 3; })},
-        { id: 'summer_visit', name: '夏の思い出', icon: '🌻', desc: '8月に参拝する', rank: 1, check: (d) => d.some(e => new Date(e.date).getMonth() === 7) },
-        { id: 'end_year', name: '年越し詣', icon: '🔔', desc: '12月31日に参拝', rank: 2, check: (d) => d.some(e => { const date = new Date(e.date); return date.getMonth() === 11 && date.getDate() === 31; })},
-        { id: 'monthly_walker', name: '月参りの達人', icon: '🌙', desc: '12ヶ月全ての月で記録', rank: 4, check: (d) => { const months = new Set(d.map(e => new Date(e.date).getMonth())); return months.size === 12; }},
-        { id: 'weekend_priest', name: '週末の神主', icon: '🍻', desc: '土日の参拝が10回以上', rank: 2, check: (d) => { const weekends = d.filter(e => { const day = new Date(e.date).getDay(); return day === 0 || day === 6; }); return weekends.length >= 10; }},
-        { id: 'lucky_seven', name: 'ラッキーセブン', icon: '7️⃣', desc: '7のつく日に7回参拝', rank: 3, check: (d) => { const sevens = d.filter(e => { const day = new Date(e.date).getDate(); return day === 7 || day === 17 || day === 27; }); return sevens.length >= 7; }},
-        { id: 'combo_3', name: '三日坊主卒業', icon: '🔥', desc: '3日連続で記録', rank: 2, check: (d) => hasConsecutiveDays(d, 3) },
-        { id: 'combo_7', name: '習慣の鬼', icon: '👹', desc: '7日連続で記録', rank: 3, check: (d) => hasConsecutiveDays(d, 7) },
-        { id: 'traveler', name: '神社巡り', icon: '🗺️', desc: '5箇所の違う神社に行く', rank: 2, check: (d) => new Set(d.map(e => e.shrine)).size >= 5 },
-        { id: 'explorer', name: '聖地開拓者', icon: '🧭', desc: '10箇所の違う神社に行く', rank: 3, check: (d) => new Set(d.map(e => e.shrine)).size >= 10 },
-        { id: 'single_minded', name: '一途な想い', icon: '💘', desc: '同じ神社に5回連続', rank: 1, check: (d) => { if(d.length < 5) return false; const sorted = [...d].sort((a,b) => new Date(a.date) - new Date(b.date)); let streak = 1; for(let i=1; i<sorted.length; i++) { if(sorted[i].shrine === sorted[i-1].shrine) streak++; else streak = 1; if(streak >= 5) return true; } return false; }},
-        { id: 'shrine_naming', name: '神宮マニア', icon: '🏯', desc: '「神宮」のつく場所へ', rank: 1, check: (d) => d.some(e => e.shrine.includes('神宮')) },
-        { id: 'shrine_tenmangu', name: '学問の神様', icon: '📖', desc: '「天満宮」のつく場所へ', rank: 1, check: (d) => d.some(e => e.shrine.includes('天満宮')) },
-        { id: 'shrine_inari', name: 'お稲荷さん', icon: '🦊', desc: '「稲荷」のつく場所へ', rank: 1, check: (d) => d.some(e => e.shrine.includes('稲荷')) },
-        { id: 'shrine_hachiman', name: '八幡宮の加護', icon: '⚔️', desc: '「八幡」のつく場所へ', rank: 1, check: (d) => d.some(e => e.shrine.includes('八幡')) },
-        { id: 'writer', name: '文豪', icon: '🖋️', desc: '50文字以上のメモを書く', rank: 1, check: (d) => d.some(e => e.note && e.note.length >= 50) },
-        { id: 'friend_record', name: '代筆者', icon: '✍️', desc: '自分以外の名前を記録', rank: 1, check: (d) => d.some(e => e.name !== '自分') },
-        { id: 'party_time', name: '賑やかな参拝', icon: '🎉', desc: '3人以上の名前がある', rank: 2, check: (d) => new Set(d.map(e => e.name)).size >= 3 },
-        { id: 'master_of_omikuji', name: '御神籤の神', icon: '💎', desc: '他全ての称号を獲得', rank: 4, check: (d) => { const others = BADGES.filter(b => b.id !== 'master_of_omikuji'); return others.every(b => b.check(d)); } }
+        { id: 'f1', name: '初めの一歩', icon: '🐣', desc: '初めて記録した', rank: 1, check: (d) => d.length >= 1 },
+        { id: 'f10', name: '参拝愛好家', icon: '🚶', desc: '記録が10回', rank: 1, check: (d) => d.length >= 10 },
+        { id: 'f50', name: '神の使い', icon: '🧚', desc: '記録が50回', rank: 3, check: (d) => d.length >= 50 },
+        { id: 'f100', name: '生きる伝説', icon: '🐲', desc: '記録が100回', rank: 4, check: (d) => d.length >= 100 },
+        { id: 'lucky3', name: '確変モード', icon: '🎰', desc: '3回連続で大吉', rank: 3, check: (d) => {
+            if(d.length < 3) return false;
+            const s = [...d].sort((a,b)=>new Date(b.date)-new Date(a.date));
+            return s[0].result==='大吉'&&s[1].result==='大吉'&&s[2].result==='大吉';
+        }}
     ];
 
     window.onload = () => {
-        const savedTheme = localStorage.getItem(THEME_KEY);
-        if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
-        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme', 'dark');
-
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) entries = JSON.parse(stored);
         document.getElementById('input-date').valueAsDate = new Date();
-        const lastName = localStorage.getItem(LAST_NAME_KEY);
-        if(lastName) document.getElementById('input-name').value = lastName;
-        else document.getElementById('input-name').value = '自分';
-
-        loadData();
-        const today = new Date();
-        const firstDay = new Date(today.getFullYear(), 0, 1);
-        document.getElementById('filter-start').valueAsDate = firstDay;
-        document.getElementById('filter-end').valueAsDate = today;
-
-        updateUI();
-        updateStreak(); 
-        renderBadges();
+        updateUI(); updateStreak(); renderBadges();
     };
 
-    function toggleTheme() {
-        const current = document.documentElement.getAttribute('data-theme');
-        const next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem(THEME_KEY, next);
-        if(myChart) updateChart(); 
-    }
-
-    function switchTab(tabName) {
+    function switchTab(t) {
         document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
-        document.getElementById('tab-' + tabName).classList.remove('hidden');
+        document.getElementById('tab-'+t).classList.remove('hidden');
         document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-        const tabMap = {'input':0, 'history':1, 'analysis':2, 'collection':3, 'settings':4};
         const tabs = document.querySelectorAll('.tab');
-        if(tabMap[tabName] !== undefined) tabs[tabMap[tabName]].classList.add('active');
-
-        if(tabName === 'analysis') { updatePersonFilter(); updateChart(); }
-        if(tabName === 'collection') renderBadges();
-        if(tabName === 'history') renderCalendar();
+        const map = {'input':0, 'history':1, 'analysis':2, 'collection':3};
+        tabs[map[t]].classList.add('active');
+        if(t === 'analysis') updateChart();
     }
 
-    function loadData() {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            entries = JSON.parse(stored);
-            entries.forEach(e => { if(!e.name) e.name = '自分'; });
-        }
-    }
-
-    function saveData() {
+    function addEntry() {
+        const name = document.getElementById('input-name').value.trim();
+        const shrine = document.getElementById('input-shrine').value.trim();
+        if(!name || !shrine) return alert('名前と神社名を入れてね！');
+        entries.unshift({
+            id: Date.now(), name, shrine,
+            date: document.getElementById('input-date').value,
+            result: document.getElementById('input-result').value,
+            note: document.getElementById('input-note').value
+        });
         localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-        updateUI();
-        updateStreak(); 
-        renderBadges();
+        document.getElementById('input-shrine').value = '';
+        updateUI(); updateStreak(); renderBadges();
+        switchTab('history');
     }
 
-    function updateInputCandidates() {
-        const uniqueNames = [...new Set(entries.map(e => e.name))].sort();
-        const nameListEl = document.getElementById('name-list');
-        nameListEl.innerHTML = '';
-        uniqueNames.forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name;
-            nameListEl.appendChild(opt);
-        });
-
-        const uniqueShrines = [...new Set(entries.map(e => e.shrine))].sort();
-        const shrineListEl = document.getElementById('shrine-list');
-        shrineListEl.innerHTML = '';
-        uniqueShrines.forEach(shrine => {
-            const opt = document.createElement('option');
-            opt.value = shrine;
-            shrineListEl.appendChild(opt);
-        });
+    function deleteEntry(id) {
+        if(confirm('この記録を消してもいい？')) {
+            entries = entries.filter(e => e.id !== id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+            updateUI(); updateStreak(); renderBadges();
+        }
     }
 
     function updateStreak() {
-        if(entries.length === 0) {
-            document.getElementById('streak-days').textContent = "0";
-            return;
-        }
-        const uniqueDates = [...new Set(entries.map(e => e.date))].sort((a,b) => new Date(b) - new Date(a));
-        const todayStr = new Date().toISOString().split('T')[0];
-        const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
-        if(uniqueDates[0] !== todayStr && uniqueDates[0] !== yesterdayStr) {
-            document.getElementById('streak-days').textContent = "0";
-            return;
-        }
-
+        if(entries.length === 0) return;
+        const dates = [...new Set(entries.map(e => e.date))].sort((a,b) => new Date(b) - new Date(a));
         let streak = 1;
-        for(let i = 0; i < uniqueDates.length - 1; i++) {
-            const current = new Date(uniqueDates[i]);
-            const prev = new Date(uniqueDates[i+1]);
-            const diffTime = current - prev;
-            const diffDays = diffTime / (1000 * 60 * 60 * 24);
-            if(Math.round(diffDays) === 1) streak++; else break; 
+        for(let i=0; i<dates.length-1; i++) {
+            const diff = (new Date(dates[i]) - new Date(dates[i+1])) / 86400000;
+            if(Math.round(diff) === 1) streak++; else break;
         }
         document.getElementById('streak-days').textContent = streak;
     }
 
-    function hasConsecutiveDays(data, days) {
-        if(data.length < days) return false;
-        const uniqueDates = [...new Set(data.map(e => e.date))].sort();
-        let consecutive = 1;
-        for(let i=1; i<uniqueDates.length; i++) {
-            const diff = (new Date(uniqueDates[i]) - new Date(uniqueDates[i-1])) / 86400000;
-            if(Math.round(diff) === 1) consecutive++; else consecutive = 1;
-            if(consecutive >= days) return true;
-        }
-        return false;
+    function updateUI() {
+        // 入力候補の更新
+        const names = [...new Set(entries.map(e => e.name))].sort();
+        const nList = document.getElementById('name-list');
+        nList.innerHTML = ''; names.forEach(n => { const o = document.createElement('option'); o.value = n; nList.appendChild(o); });
+        const shrines = [...new Set(entries.map(e => e.shrine))].sort();
+        const sList = document.getElementById('shrine-list');
+        sList.innerHTML = ''; shrines.forEach(s => { const o = document.createElement('option'); o.value = s; sList.appendChild(o); });
+
+        // 履歴リストの更新
+        const list = document.getElementById('history-list');
+        list.innerHTML = '';
+        entries.forEach(e => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <div class="history-top">
+                    <div><h3 style="margin:0;">${e.shrine}</h3><small>${e.date} | ${e.name}</small></div>
+                    <div class="fortune-badge rank-dai-kichi">${e.result}</div>
+                </div>
+                <div class="action-row">
+                    <button class="btn-small" onclick="openGoshuinModal(${e.id})">📿 御朱印</button>
+                    <button class="btn-small" style="color:var(--danger);" onclick="deleteEntry(${e.id})">🗑️ 削除</button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    function openGoshuinModal(id) {
+        currentGoshuinEntry = entries.find(e => e.id === id);
+        document.getElementById('goshuin-modal').classList.add('show');
+        document.fonts.load('1em "GoshuinFont"').then(() => drawGoshuin(currentGoshuinEntry));
+    }
+
+    function redrawGoshuin() { drawGoshuin(currentGoshuinEntry); }
+
+    function drawGoshuin(e) {
+        const canvas = document.getElementById('goshuin-canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = "#fffcf2"; ctx.fillRect(0,0,300,450);
+        ctx.strokeStyle = "#e60033"; ctx.lineWidth = 4; ctx.strokeRect(10,10,280,430);
+        ctx.fillStyle = "rgba(230,0,51,0.15)"; ctx.font = "80px GoshuinFont"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText("神璽", 150, 225);
+        ctx.fillStyle = "#111"; ctx.font = "45px GoshuinFont"; ctx.textBaseline = "top";
+        const s = e.shrine; for(let i=0; i<s.length; i++) ctx.fillText(s[i], 150, 60 + i*50);
+        ctx.font = "24px GoshuinFont"; ctx.fillText("奉拝", 250, 40);
+        ctx.font = "18px GoshuinFont"; ctx.fillText(e.date.replace(/-/g,'.'), 50, 40);
+        ctx.strokeStyle = "#d60000"; ctx.lineWidth = 2; ctx.strokeRect(30, 360, 60, 60);
+        ctx.fillStyle = "#d60000"; ctx.font = "30px GoshuinFont"; ctx.textBaseline = "middle";
+        ctx.fillText(e.result.substring(0,2), 60, 390);
+    }
+
+    function downloadGoshuin() {
+        const c = document.getElementById('goshuin-canvas');
+        const a = document.createElement('a'); a.download = 'goshuin.png'; a.href = c.toDataURL(); a.click();
     }
 
     function renderBadges() {
         const container = document.getElementById('badge-container');
         container.innerHTML = '';
-        BADGES.forEach(badge => {
-            const isUnlocked = badge.check(entries);
+        BADGES.forEach(b => {
             const div = document.createElement('div');
-            let classes = `badge-item badge-rank-${badge.rank} ${isUnlocked ? 'unlocked' : ''}`;
-            div.className = classes;
-            div.innerHTML = `<span class="badge-icon">${badge.icon}</span><span class="badge-name">${badge.name}</span><span class="badge-desc">${badge.desc}</span>`;
+            div.className = `badge-item badge-rank-${b.rank} ${b.check(entries) ? 'unlocked' : ''}`;
+            div.innerHTML = `<div style="font-size:32px;">${b.icon}</div><div style="font-size:12px; font-weight:bold;">${b.name}</div>`;
             container.appendChild(div);
         });
     }
 
-    function openGoshuinModal(id) {
-        const entry = entries.find(e => e.id === id);
-        if(!entry) return;
-        currentGoshuinEntry = entry;
-        document.getElementById('goshuin-modal').classList.add('show');
-        document.fonts.load('1em "GoshuinFont"').then(() => {
-            drawGoshuin(entry);
-        }).catch(err => {
-            console.error('Font loading failed:', err);
-            drawGoshuin(entry);
-        });
-    }
-
-    function redrawGoshuin() {
-        if(currentGoshuinEntry) {
-            drawGoshuin(currentGoshuinEntry);
-        }
-    }
-
-    // --- シェア機能 ---
-    async function shareGoshuin() {
-        const canvas = document.getElementById('goshuin-canvas');
-        if (!currentGoshuinEntry) return;
-
-        // CanvasをBlob(ファイル)に変換
-        canvas.toBlob(async (blob) => {
-            if (!blob) return alert('画像の生成に失敗しました');
-            const file = new File([blob], "omikuji_goshuin.png", { type: "image/png" });
-            const text = `📅 ${currentGoshuinEntry.date}\n⛩️ ${currentGoshuinEntry.shrine}で【${currentGoshuinEntry.result}】を引きました！\n#おみくじ管理 #御朱印`;
-            
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        title: 'おみくじ結果',
-                        text: text,
-                        files: [file]
-                    });
-                } catch (err) {
-                    console.log('Share canceled or failed', err);
-                }
-            } else {
-                alert('このブラウザでは画像を直接シェアできません。\n「保存」→「文章コピー」→「Xに投稿」してください。');
-            }
-        });
-    }
-
-    function postToX() {
-        if (!currentGoshuinEntry) return;
-        // Xへの投稿（テキストのみ）
-        // リンクにはハッシュタグをつける
-        const text = `📅 ${currentGoshuinEntry.date}\n⛩️ ${currentGoshuinEntry.shrine}で【${currentGoshuinEntry.result}】を引きました！\n\n#おみくじ管理 #御朱印`;
-        const url = window.location.href; 
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-        window.open(twitterUrl, '_blank');
-    }
-
-    // 新機能: テキストコピー
-    function copyTextToClipboard() {
-        if (!currentGoshuinEntry) return;
-        const text = `📅 ${currentGoshuinEntry.date}\n⛩️ ${currentGoshuinEntry.shrine}で【${currentGoshuinEntry.result}】を引きました！\n\n#おみくじ管理 #御朱印`;
-        navigator.clipboard.writeText(text).then(() => {
-            alert('文章をコピーしました！\nXを開いて画像を添付し、ペーストしてください。');
-        }).catch(err => {
-            alert('コピーに失敗しました');
-        });
-    }
-
-    function drawVerticalText(ctx, text, x, y, fontSize, lineHeight) {
-        let cursorY = y;
-        for (let i = 0; i < text.length; i++) {
-            const char = text[i];
-            ctx.fillText(char, x, cursorY);
-            cursorY += lineHeight;
-        }
-    }
-
-    function drawGoshuin(entry) {
-        const canvas = document.getElementById('goshuin-canvas');
-        const ctx = canvas.getContext('2d');
-        const width = canvas.width;
-        const height = canvas.height;
-
-        ctx.fillStyle = "#fffcf2";
-        ctx.fillRect(0, 0, width, height);
-        
-        ctx.strokeStyle = "#e60033";
-        ctx.lineWidth = 4;
-        ctx.strokeRect(10, 10, width - 20, height - 20);
-
-        const fontBase = "'GoshuinFont', serif"; 
-
-        ctx.beginPath();
-        ctx.arc(width/2, height/2 + 20, 80, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(230, 0, 51, 0.15)";
-        ctx.lineWidth = 6;
-        ctx.stroke();
-        
-        ctx.fillStyle = "rgba(230, 0, 51, 0.15)";
-        ctx.font = `80px ${fontBase}`; 
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("神璽", width/2, height/2 + 20);
-
-        ctx.fillStyle = "#111";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "top";
-
-        ctx.font = `30px ${fontBase}`;
-        drawVerticalText(ctx, "奉拝", width - 60, 60, 30, 35);
-
-        const shrineName = entry.shrine;
-        ctx.font = `50px ${fontBase}`; 
-        const centerX = width / 2;
-        const totalHeight = shrineName.length * 55; 
-        const startY = (height - totalHeight) / 2;
-        
-        drawVerticalText(ctx, shrineName, centerX, startY, 50, 55);
-
-        const d = new Date(entry.date);
-        const dateText = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
-        ctx.font = `20px ${fontBase}`;
-        let cursorY = 100;
-        for(let i=0; i<dateText.length; i++) {
-            ctx.fillText(dateText[i], 60, cursorY);
-            cursorY += 25;
-        }
-
-        const resultText = entry.result; 
-        const stampX = 40;
-        const stampY = height - 100;
-
-        ctx.save();
-        ctx.translate(stampX, stampY);
-        ctx.rotate(-0.1); 
-        
-        ctx.strokeStyle = "#d60000";
-        ctx.lineWidth = 3;
-        ctx.strokeRect(-35, -35, 70, 70);
-        
-        ctx.fillStyle = "#d60000";
-        ctx.font = `32px ${fontBase}`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        
-        if(resultText.length === 2) {
-            ctx.fillText(resultText[0], 0, -15);
-            ctx.fillText(resultText[1], 0, 15);
-        } else {
-            ctx.font = `24px ${fontBase}`;
-            ctx.fillText(resultText, 0, 0);
-        }
-        ctx.restore();
-    }
-
-    function downloadGoshuin() {
-        const canvas = document.getElementById('goshuin-canvas');
-        const link = document.createElement('a');
-        link.download = `goshuin_${Date.now()}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-    }
-
-    function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-
-    // --- 以下、既存ロジック ---
-    function switchHistoryView(view) {
-        document.getElementById('view-list-btn').classList.toggle('active', view === 'list');
-        document.getElementById('view-cal-btn').classList.toggle('active', view === 'calendar');
-        document.getElementById('history-list-view').classList.toggle('hidden', view !== 'list');
-        document.getElementById('history-cal-view').classList.toggle('hidden', view !== 'calendar');
-        if(view === 'calendar') renderCalendar();
-    }
-
-    function changeCalMonth(delta) { currentCalDate.setMonth(currentCalDate.getMonth() + delta); renderCalendar(); }
-
-    function renderCalendar() {
-        const year = currentCalDate.getFullYear();
-        const month = currentCalDate.getMonth();
-        document.getElementById('cal-month-label').textContent = `${year}年${month+1}月`;
-        const firstDay = new Date(year, month, 1).getDay(); 
-        const endDate = new Date(year, month+1, 0).getDate();
-        const container = document.getElementById('calendar-body');
-        container.innerHTML = '';
-        for(let i=0; i<firstDay; i++) container.appendChild(createCalCell(''));
-        for(let d=1; d<=endDate; d++) {
-            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            container.appendChild(createCalCell(d, entries.filter(e => e.date === dateStr), dateStr));
-        }
-    }
-
-    function createCalCell(day, dayEntries = [], dateStr = '') {
-        const div = document.createElement('div');
-        div.className = 'cal-day';
-        if(!day) return div;
-        if(dateStr === new Date().toISOString().split('T')[0]) div.classList.add('today');
-        if(dayEntries.length > 0) {
-            div.classList.add('has-entry');
-            div.onclick = () => openDayModal(dateStr); 
-        }
-        div.innerHTML = `<span>${day}</span>`;
-        dayEntries.forEach(e => {
-            const mark = document.createElement('div');
-            mark.className = 'cal-mark';
-            if(e.result === '大吉') mark.classList.add('mark-dai-kichi');
-            else if(e.result.includes('吉')) mark.classList.add('mark-kichi');
-            else mark.classList.add('mark-kyo');
-            div.appendChild(mark);
-        });
-        return div;
-    }
-
-    function openDayModal(dateStr) {
-        const dayEntries = entries.filter(e => e.date === dateStr);
-        if (dayEntries.length === 0) return;
-        const modalBody = document.getElementById('modal-body');
-        modalBody.innerHTML = '';
-        document.getElementById('modal-date').textContent = dateStr;
-        dayEntries.forEach(entry => {
-            const cssClass = getRankClass(entry.result);
-            const div = document.createElement('div');
-            div.className = 'modal-entry';
-            div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><div style="font-weight:bold; font-size:16px;">${entry.shrine}</div><div style="font-size:12px; color:var(--text-sub); margin-top:2px;">👤 ${entry.name || '自分'}</div></div><div class="fortune-badge ${cssClass}">${entry.result}</div></div>${entry.note ? `<div style="margin-top:10px; font-size:14px; background:var(--card-bg); padding:8px; border-radius:6px;">${entry.note}</div>` : ''}`;
-            modalBody.appendChild(div);
-        });
-        document.getElementById('day-modal').classList.add('show');
-    }
-
-    function addEntry() {
-        const nameInput = document.getElementById('input-name').value.trim();
-        const shrineInput = document.getElementById('input-shrine').value.trim();
-        if (!shrineInput || !nameInput) return alert('名前と神社名を入れて！');
-        localStorage.setItem(LAST_NAME_KEY, nameInput);
-        entries.unshift({ id: Date.now(), name: nameInput, date: document.getElementById('input-date').value || new Date().toISOString().split('T')[0], shrine: shrineInput, result: document.getElementById('input-result').value, note: document.getElementById('input-note').value });
-        entries.sort((a, b) => new Date(b.date) - new Date(a.date));
-        saveData();
-        document.getElementById('input-shrine').value = ''; document.getElementById('input-note').value = '';
-        switchTab('history');
-    }
-
-    function deleteEntry(id) { if(confirm('本当に消すよ？')) { entries = entries.filter(e => e.id !== id); saveData(); } }
-
-    function shareEntry(id) {
-        // 御朱印モーダルを開く
-        openGoshuinModal(id);
-    }
-
-    function clearAllData() { if(confirm('全部消えるよ！本当によい？')) { entries = []; saveData(); alert('まっさらにしました'); } }
-
-    function updateUI() {
-        document.getElementById('entry-count').textContent = entries.length;
-        updateInputCandidates();
-        const listEl = document.getElementById('history-list');
-        listEl.innerHTML = '';
-        if (entries.length === 0) listEl.innerHTML = '<div style="text-align:center; padding:40px; font-size:14px; color:var(--text-sub);">記録がありません</div>';
-        entries.forEach(e => {
-            const item = document.createElement('div');
-            item.className = 'history-item';
-            item.innerHTML = `<div class="history-top"><div class="history-content history-info" style="flex:1;"><h3>${e.shrine}</h3><div class="date">📅 ${e.date}</div><div class="person-tag">👤 ${e.name || '自分'}</div></div><div class="fortune-badge ${getRankClass(e.result)}">${e.result}</div></div>${e.note ? `<div class="history-content"><div class="note" style="font-size:13px; margin-top:8px;">📝 ${e.note}</div></div>` : ''}<div class="action-row"><button class="action-btn share-btn" onclick="shareEntry(${e.id})">📿 御朱印</button><button class="action-btn delete-btn" onclick="deleteEntry(${e.id})">🗑️ 削除</button></div>`;
-            listEl.appendChild(item);
-        });
-    }
-
-    function getRankClass(r) { switch(r) { case '大吉': return 'rank-dai-kichi'; case '吉': return 'rank-kichi'; case '中吉': return 'rank-chu-kichi'; case '小吉': return 'rank-sho-kichi'; case '末吉': return 'rank-sue-kichi'; case '凶': return 'rank-kyo'; case '大凶': return 'rank-dai-kyo'; default: return ''; } }
-
-    function updatePersonFilter() {
-        const filter = document.getElementById('filter-person');
-        const val = filter.value;
-        while(filter.options.length > 1) filter.remove(1);
-        const names = [...new Set(entries.map(e => e.name))].sort();
-        names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; filter.appendChild(o); });
-        filter.value = names.includes(val) ? val : "ALL";
-    }
-
-    function switchChartType(t) { currentChartType = t; document.getElementById('toggle-luck').classList.toggle('active', t === 'luck'); document.getElementById('toggle-shrine').classList.toggle('active', t === 'shrine'); updateChart(); }
-
     function updateChart() {
-        const start = new Date(document.getElementById('filter-start').value);
-        const end = new Date(document.getElementById('filter-end').value);
-        end.setHours(23,59,59);
-        const person = document.getElementById('filter-person').value;
-        let filtered = entries.filter(e => { const d = new Date(e.date); return d >= start && d <= end; });
-        if (person !== "ALL") filtered = filtered.filter(e => e.name === person);
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const ctx = document.getElementById('mainChart').getContext('2d');
         if (myChart) myChart.destroy();
-        if (currentChartType === 'luck') {
-            const lucks = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
-            const persons = person === "ALL" ? [...new Set(filtered.map(e => e.name))] : [person];
-            const colors = ['#007AFF', '#FF3B30', '#34C759', '#FF9500', '#AF52DE', '#5856D6', '#FF2D55', '#8E8E93'];
-            myChart = new Chart(ctx, { type: 'bar', data: { labels: lucks, datasets: persons.map((p, i) => ({ label: p, data: lucks.map(l => filtered.filter(e => e.name === p && e.result === l).length), backgroundColor: colors[i % colors.length], borderColor: 'rgba(255,255,255,0.5)', borderWidth: 1, barPercentage: 0.7 })) }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, ticks: { color: isDark ? '#FFF' : '#000', font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { stacked: true, ticks: { color: isDark ? '#FFF' : '#000', font: {size: 12, weight:'bold'} }, grid: { display: false } } }, plugins: { legend: { position: 'bottom', labels: { color: isDark ? '#FFF' : '#000', font: { size: 12, weight: 'bold' }, boxWidth: 12 } } } } });
-        } else {
-            const counts = {}; filtered.forEach(e => { counts[e.shrine] = (counts[e.shrine] || 0) + 1; });
-            const sorted = Object.keys(counts).sort((a,b) => counts[b] - counts[a]);
-            myChart = new Chart(ctx, { type: 'bar', data: { labels: sorted, datasets: [{ label: '参拝回数', data: sorted.map(s => counts[s]), backgroundColor: '#FF3B30', borderRadius: 4, barPercentage: 0.6 }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { color: isDark ? '#FFF' : '#000', font: {size: 12, weight:'bold'}, stepSize: 1, precision: 0 }, grid: { color: isDark ? '#333' : '#ddd' } }, y: { ticks: { color: isDark ? '#FFF' : '#000', font: {size: 12, weight:'bold'} }, grid: { display: false } } }, plugins: { legend: { display: false } } } });
-        }
-        document.getElementById('analysis-summary').textContent = `対象データ: ${filtered.length}件`;
+        const counts = {}; entries.forEach(e => { counts[e.result] = (counts[e.result] || 0) + 1; });
+        myChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels: Object.keys(counts), datasets: [{ data: Object.values(counts), backgroundColor: ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#007AFF'] }] },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
     }
 
-    function exportData() { if(entries.length === 0) return alert('データがありません'); const blob = new Blob([JSON.stringify(entries, null, 2)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `omikuji_${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(url); }
-    function triggerImport() { document.getElementById('file-import').click(); }
-    function importData(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { const data = JSON.parse(e.target.result); if (Array.isArray(data)) { if(confirm('上書きしますか？')) { entries = data; saveData(); alert('復元完了！'); } } } catch (err) { alert('形式が正しくありません'); } }; reader.readAsText(file); input.value = ''; }
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme');
+        document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
+    function closeModal() { document.getElementById('goshuin-modal').classList.remove('show'); }
 </script>
-
 </body>
 </html>
