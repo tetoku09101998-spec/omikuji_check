@@ -15,7 +15,7 @@
     <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FF3B30'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E⛩️%3C/text%3E%3C/svg%3E">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23FF3B30'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E⛩️%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23F2F2F7'/%3E%3Cpath d='M20 25 H80 V35 H70 V85 H60 V35 H40 V85 H30 V35 H20 Z' fill='%23FF3B30'/%3E%3Cpath d='M15 15 Q50 10 85 15 V22 H15 Z' fill='%23FF3B30'/%3E%3Crect x='50' y='50' width='35' height='45' fill='%23CD853F' stroke='white' stroke-width='2'/%3E%3Crect x='62' y='38' width='10' height='20' fill='%23DEB887'/%3E%3Ctext x='67' y='80' font-size='24' text-anchor='middle' fill='white' font-family='serif' font-weight='bold'%3E籤%3C/text%3E%3C/svg%3E">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
@@ -42,28 +42,20 @@
             --input-bg: #3A3A3C; --input-border: #636366; --text: #FFFFFF; --text-sub: #D1D1D6;
         }
 
-        /* 全要素のボックスサイズ計算を統一（はみ出し防止の基本） */
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
+        *, *::before, *::after { box-sizing: border-box; }
 
         body {
             font-family: 'Noto Sans JP', sans-serif; margin: 0; padding: 0;
             background-color: var(--bg); color: var(--text); font-size: 15px;
-            /* 上部固定エリアの分だけ余白を空ける */
             padding-top: calc(var(--safe-top) + var(--header-height) + var(--tab-height) + 10px);
             padding-bottom: calc(80px + var(--safe-bottom));
             overscroll-behavior-y: none;
             overflow-x: hidden;
         }
 
-        /* --- 完全固定ヘッダー --- */
         header {
-            background: var(--card-bg); 
-            padding: 0 16px; 
-            position: fixed; /* 固定 */
-            top: 0; left: 0; width: 100%; 
-            z-index: 1000; 
+            background: var(--card-bg); padding: 0 16px; 
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; 
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid var(--input-border); 
             height: calc(var(--header-height) + var(--safe-top));
@@ -73,18 +65,11 @@
         h1 { font-size: 17px; margin: 0; font-weight: 700; }
         .version-badge { font-size: 10px; background: var(--input-bg); padding: 2px 6px; border-radius: 4px; color: var(--text-sub); margin-left: 8px; vertical-align: middle; }
 
-        /* --- 完全固定タブ --- */
         .tabs { 
-            display: flex; 
-            background: var(--card-bg); 
-            padding: 0 8px; 
+            display: flex; background: var(--card-bg); padding: 0 8px; 
             border-bottom: 1px solid var(--input-border); 
-            position: fixed; /* 固定 */
-            top: calc(var(--safe-top) + var(--header-height)); 
-            left: 0; width: 100%; 
-            z-index: 999; 
-            height: var(--tab-height);
-            align-items: center;
+            position: fixed; top: calc(var(--safe-top) + var(--header-height)); left: 0; width: 100%; 
+            z-index: 999; height: var(--tab-height); align-items: center;
         }
         .tab { flex: 1; text-align: center; padding: 8px 4px; font-size: 13px; cursor: pointer; border-radius: 8px; color: var(--text-sub); font-weight: 700; }
         .tab.active { background: var(--bg); color: var(--primary); }
@@ -118,24 +103,17 @@
             font-size: 16px; font-weight: 700; cursor: pointer;
         }
 
-        /* --- カレンダー (はみ出し修正) --- */
         .view-toggle { display: flex; margin: 10px 16px; border: 1px solid var(--primary); border-radius: 8px; overflow: hidden; }
         .view-btn { flex: 1; padding: 8px; text-align: center; font-size: 13px; font-weight: bold; background: var(--card-bg); color: var(--primary); cursor: pointer; }
         .view-btn.active { background: var(--primary); color: white; }
         
         .calendar-grid { 
-            display: grid; 
-            grid-template-columns: repeat(7, 1fr); 
-            gap: 2px; /* 隙間を詰めてはみ出し防止 */
-            padding: 8px; /* パディング微調整 */
-            background: var(--card-bg); 
-            width: 100%; 
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; padding: 8px; 
+            background: var(--card-bg); width: 100%; 
         }
         .cal-header { text-align: center; font-size: 12px; font-weight: bold; color: var(--text-sub); padding-bottom: 4px; }
         .cal-day { 
-            aspect-ratio: 1; 
-            border: 1px solid var(--input-border); 
-            border-radius: 4px; 
+            aspect-ratio: 1; border: 1px solid var(--input-border); border-radius: 4px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             font-size: 14px; position: relative; cursor: pointer; 
         }
@@ -182,7 +160,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ手帖<span class="version-badge">ver 5.6</span></h1>
+    <h1>⛩️ おみくじ手帖<span class="version-badge">ver 5.8</span></h1>
     <button onclick="toggleTheme()" style="background:none; border:none; font-size:20px;">🌗</button>
 </header>
 
@@ -257,6 +235,7 @@
             <div class="chart-toggle-row">
                 <div id="toggle-luck" class="toggle-btn active" onclick="switchChartType('luck')">🔮 運勢</div>
                 <div id="toggle-shrine" class="toggle-btn" onclick="switchChartType('shrine')">⛩️ 神社</div>
+                <div id="toggle-trend" class="toggle-btn" onclick="switchChartType('trend')">📈 推移</div>
             </div>
             <div class="form-group">
                 <label>👥 表示対象</label>
@@ -395,6 +374,7 @@
     ];
 
     window.onload = () => {
+        // テーマ復元
         const savedTheme = localStorage.getItem(THEME_KEY);
         if (savedTheme) { document.documentElement.setAttribute('data-theme', savedTheme); }
         else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { document.documentElement.setAttribute('data-theme', 'dark'); }
@@ -568,14 +548,31 @@
         document.getElementById('day-modal').classList.add('show');
     }
 
-    // --- 分析 (人物別スタックグラフ) ---
+    // --- 分析 (★修正: 直線グラフ) ---
     function switchChartType(type) {
         currentChartType = type;
         document.getElementById('toggle-luck').classList.remove('active');
         document.getElementById('toggle-shrine').classList.remove('active');
+        document.getElementById('toggle-trend').classList.remove('active');
+        
         if (type === 'luck') document.getElementById('toggle-luck').classList.add('active'); 
-        else document.getElementById('toggle-shrine').classList.add('active');
+        else if(type === 'shrine') document.getElementById('toggle-shrine').classList.add('active');
+        else document.getElementById('toggle-trend').classList.add('active');
+        
         updateChart();
+    }
+
+    function getFortuneScore(result) {
+        switch(result) {
+            case '大吉': return 10;
+            case '吉': return 6;
+            case '中吉': return 3;
+            case '小吉': return 1;
+            case '末吉': return 0;
+            case '凶': return -5;
+            case '大凶': return -10;
+            default: return 0;
+        }
     }
 
     function updatePersonFilter() {
@@ -602,8 +599,10 @@
 
         let labels = [];
         let datasets = [];
+        let options = {};
 
         if (currentChartType === 'luck') {
+            // 運勢横棒
             labels = ['大吉', '吉', '中吉', '小吉', '末吉', '凶', '大凶'];
             datasets = persons.map((p, i) => ({
                 label: p,
@@ -612,7 +611,19 @@
                 borderColor: isDark ? '#333' : '#fff',
                 borderWidth: 1
             }));
-        } else {
+            options = {
+                indexAxis: 'y', 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, ticks: { color: txtColor, stepSize:1 } },
+                    y: { stacked: true, ticks: { color: txtColor, font:{weight:'bold'} } }
+                },
+                plugins: { legend: { display: true, position:'bottom', labels:{color:txtColor} } }
+            };
+
+        } else if(currentChartType === 'shrine') {
+            // 神社横棒
             const sCounts = {}; targetData.forEach(e => { sCounts[e.shrine] = (sCounts[e.shrine] || 0) + 1; });
             labels = Object.keys(sCounts).sort((a,b) => sCounts[b] - sCounts[a]).slice(0, 10);
             
@@ -623,21 +634,68 @@
                 borderColor: isDark ? '#333' : '#fff',
                 borderWidth: 1
             }));
-        }
-
-        myChart = new Chart(ctx, {
-            type: 'bar',
-            data: { labels: labels, datasets: datasets },
-            options: {
-                indexAxis: 'y', 
-                responsive: true, 
+            options = {
+                indexAxis: 'y',
+                responsive: true,
                 maintainAspectRatio: false,
                 scales: {
                     x: { stacked: true, ticks: { color: txtColor, stepSize:1 } },
                     y: { stacked: true, ticks: { color: txtColor, font:{weight:'bold'} } }
                 },
                 plugins: { legend: { display: true, position:'bottom', labels:{color:txtColor} } }
-            }
+            };
+
+        } else {
+            // トレンド（折れ線・直線）
+            targetData.sort((a, b) => new Date(a.date) - new Date(b.date));
+            const uniqueDates = [...new Set(targetData.map(e => e.date))]; 
+            labels = uniqueDates;
+
+            datasets = persons.map((p, i) => {
+                const personData = uniqueDates.map(date => {
+                    const entry = targetData.find(e => e.name === p && e.date === date);
+                    return entry ? getFortuneScore(entry.result) : null; 
+                });
+                return {
+                    label: p,
+                    data: personData,
+                    borderColor: colors[i % colors.length],
+                    backgroundColor: colors[i % colors.length],
+                    tension: 0, // ★直線にする
+                    spanGaps: true 
+                };
+            });
+
+            options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { color: txtColor } },
+                    y: { 
+                        ticks: { 
+                            color: txtColor,
+                            callback: function(value) {
+                                if(value===10) return '大吉';
+                                if(value===6) return '吉';
+                                if(value===3) return '中吉';
+                                if(value===1) return '小吉';
+                                if(value===0) return '末吉';
+                                if(value===-5) return '凶';
+                                if(value===-10) return '大凶';
+                                return '';
+                            }
+                        },
+                        min: -12, max: 12 
+                    }
+                },
+                plugins: { legend: { display: true, position:'bottom', labels:{color:txtColor} } }
+            };
+        }
+
+        myChart = new Chart(ctx, {
+            type: currentChartType === 'trend' ? 'line' : 'bar',
+            data: { labels: labels, datasets: datasets },
+            options: options
         });
         document.getElementById('analysis-summary').textContent = `対象データ: ${targetData.length}件`;
     }
@@ -787,6 +845,7 @@
     }
     function clearAllData() { if(confirm('本当に全部消す？')) { entries=[]; saveData(); } }
     
+    // --- ★修正: テーマ保存 ---
     function toggleTheme() {
         const current = document.documentElement.getAttribute('data-theme');
         const next = current === 'dark' ? 'light' : 'dark';
