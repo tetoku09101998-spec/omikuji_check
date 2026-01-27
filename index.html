@@ -160,7 +160,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ手帖<span class="version-badge">ver 5.8</span></h1>
+    <h1>⛩️ おみくじ手帖<span class="version-badge">ver 6.1</span></h1>
     <button onclick="toggleTheme()" style="background:none; border:none; font-size:20px;">🌗</button>
 </header>
 
@@ -548,7 +548,7 @@
         document.getElementById('day-modal').classList.add('show');
     }
 
-    // --- 分析 (★修正: 直線グラフ) ---
+    // --- 分析 (★修正: 全ラベル強制表示 + 整数刻み) ---
     function switchChartType(type) {
         currentChartType = type;
         document.getElementById('toggle-luck').classList.remove('active');
@@ -564,13 +564,13 @@
 
     function getFortuneScore(result) {
         switch(result) {
-            case '大吉': return 10;
-            case '吉': return 6;
-            case '中吉': return 3;
-            case '小吉': return 1;
-            case '末吉': return 0;
-            case '凶': return -5;
-            case '大凶': return -10;
+            case '大吉': return 6;
+            case '吉': return 5;
+            case '中吉': return 4;
+            case '小吉': return 3;
+            case '末吉': return 2;
+            case '凶': return 1;
+            case '大凶': return 0;
             default: return 0;
         }
     }
@@ -646,7 +646,7 @@
             };
 
         } else {
-            // トレンド（折れ線・直線）
+            // トレンド（直線）
             targetData.sort((a, b) => new Date(a.date) - new Date(b.date));
             const uniqueDates = [...new Set(targetData.map(e => e.date))]; 
             labels = uniqueDates;
@@ -661,7 +661,7 @@
                     data: personData,
                     borderColor: colors[i % colors.length],
                     backgroundColor: colors[i % colors.length],
-                    tension: 0, // ★直線にする
+                    tension: 0, 
                     spanGaps: true 
                 };
             });
@@ -674,18 +674,21 @@
                     y: { 
                         ticks: { 
                             color: txtColor,
+                            stepSize: 1, // ★1刻みで全表示
+                            autoSkip: false, // ★省略禁止
+                            font: { size: 11 },
                             callback: function(value) {
-                                if(value===10) return '大吉';
-                                if(value===6) return '吉';
-                                if(value===3) return '中吉';
-                                if(value===1) return '小吉';
-                                if(value===0) return '末吉';
-                                if(value===-5) return '凶';
-                                if(value===-10) return '大凶';
+                                if(value===6) return '大吉';
+                                if(value===5) return '吉';
+                                if(value===4) return '中吉';
+                                if(value===3) return '小吉';
+                                if(value===2) return '末吉';
+                                if(value===1) return '凶';
+                                if(value===0) return '大凶';
                                 return '';
                             }
                         },
-                        min: -12, max: 12 
+                        min: -1, max: 7 // ★上下に余白を確保（整数の外側）
                     }
                 },
                 plugins: { legend: { display: true, position:'bottom', labels:{color:txtColor} } }
