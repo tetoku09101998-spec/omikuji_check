@@ -159,7 +159,6 @@
         .hidden { display: none; }
         .rank-dai-kichi { color: #D32F2F; background: #FFEBEE; border-color: #D32F2F; }
 
-        /* ガチャ風アニメーション用 */
         @keyframes shake {
             0% { transform: translate(1px, 1px) rotate(0deg); }
             10% { transform: translate(-1px, -2px) rotate(-1deg); }
@@ -179,7 +178,7 @@
 <body>
 
 <header>
-    <h1>⛩️ おみくじ手帖<span class="version-badge">ver 7.0</span></h1>
+    <h1>⛩️ おみくじ手帖<span class="version-badge">ver 7.2</span></h1>
     <button onclick="toggleTheme()" style="background:none; border:none; font-size:20px;">🌗</button>
 </header>
 
@@ -202,7 +201,7 @@
         </div>
 
         <div class="card" id="daily-omikuji-card" style="text-align:center; background: linear-gradient(135deg, var(--bg) 0%, var(--input-bg) 100%);">
-            <h3 style="margin-top:0; color:var(--text);">⛩️ アプリ内 手帖神社</h3>
+            <h3 style="margin-top:0; color:var(--text);">⛩️ アプリ内 電脳神社</h3>
             <p style="font-size:12px; color:var(--text-sub);">1日1回だけ運勢を引いて自動登録できます。</p>
             <button id="btn-draw-daily" class="btn-primary" style="background:#34C759; margin-bottom:0;" onclick="drawDailyOmikuji()">🎯 今日の運勢を引く</button>
             <p id="daily-omikuji-msg" style="font-size:13px; color:var(--danger); font-weight:bold; display:none; margin-bottom:0;"></p>
@@ -339,7 +338,7 @@
 
 <div id="draw-modal" class="modal-overlay">
     <div class="modal-content" style="text-align:center;">
-        <h3 style="margin-top:0;">⛩️ 手帖神社</h3>
+        <h3 style="margin-top:0;">⛩️ 電脳神社</h3>
         <div id="draw-box" style="font-size:60px; margin: 20px 0;">📦</div>
         <div id="draw-result-text" style="font-size:16px; font-weight:bold; margin-bottom: 20px;"></div>
     </div>
@@ -370,7 +369,7 @@
         { id: 'lucky3', name: '確変モード', icon: '🎰', desc: '3回連続で大吉', rank: 3, check: (d) => {
             if(d.length < 3) return false;
             const s = [...d].sort((a,b)=>new Date(b.date)-new Date(a.date));
-            return s[0].result==='大吉'&&s[1].result==='大吉'&&s[2].result==='大吉';
+            return s[0] && s[0].result==='大吉'&&s[1].result==='大吉'&&s[2].result==='大吉';
         }},
         { id: 'bad1', name: '厄除け大師', icon: '🛡️', desc: '凶/大凶を引く', rank: 1, check: (d) => d.some(e => ['凶','大凶'].includes(e.result)) },
         { id: 'bad5', name: '不屈の精神', icon: '❤️‍🔥', desc: '凶/大凶を5回', rank: 2, check: (d) => d.filter(e => ['凶','大凶'].includes(e.result)).length >= 5 },
@@ -396,17 +395,17 @@
             const my = new Set(d.map(e => e.result));
             return types.every(t => my.has(t));
         }},
-        { id: 'newyear', name: 'あけおめ！', icon: '🎍', desc: '三が日に参拝', rank: 2, check: (d) => d.some(e => { const dt = new Date(e.date); return dt.getMonth()===0 && dt.getDate()<=3; }) },
-        { id: 'summer', name: '夏の思い出', icon: '🌻', desc: '8月に参拝', rank: 1, check: (d) => d.some(e => new Date(e.date).getMonth()===7) },
-        { id: 'endyear', name: '年越し詣', icon: '🔔', desc: '大晦日に参拝', rank: 2, check: (d) => d.some(e => { const dt = new Date(e.date); return dt.getMonth()===11 && dt.getDate()===31; }) },
+        { id: 'newyear', name: 'あけおめ！', icon: '🎍', desc: '三が日に参拝', rank: 2, check: (d) => d.some(e => { if(!e.date)return false; const dt = new Date(e.date); return dt.getMonth()===0 && dt.getDate()<=3; }) },
+        { id: 'summer', name: '夏の思い出', icon: '🌻', desc: '8月に参拝', rank: 1, check: (d) => d.some(e => { if(!e.date)return false; return new Date(e.date).getMonth()===7; }) },
+        { id: 'endyear', name: '年越し詣', icon: '🔔', desc: '大晦日に参拝', rank: 2, check: (d) => d.some(e => { if(!e.date)return false; const dt = new Date(e.date); return dt.getMonth()===11 && dt.getDate()===31; }) },
         { id: 'monthly', name: '月参りの達人', icon: '🌙', desc: '12ヶ月全てで記録', rank: 4, check: (d) => {
-            const m = new Set(d.map(e => new Date(e.date).getMonth())); return m.size === 12;
+            const m = new Set(d.map(e => e.date ? new Date(e.date).getMonth() : null).filter(x=>x!==null)); return m.size === 12;
         }},
         { id: 'weekend', name: '週末の神主', icon: '🍻', desc: '土日参拝10回', rank: 2, check: (d) => {
-            return d.filter(e => { const w = new Date(e.date).getDay(); return w===0||w===6; }).length >= 10;
+            return d.filter(e => { if(!e.date)return false; const w = new Date(e.date).getDay(); return w===0||w===6; }).length >= 10;
         }},
         { id: 'lucky7', name: 'ラッキーセブン', icon: '7️⃣', desc: '7のつく日7回', rank: 3, check: (d) => {
-            return d.filter(e => { const dd = new Date(e.date).getDate(); return dd===7||dd===17||dd===27; }).length >= 7;
+            return d.filter(e => { if(!e.date)return false; const dd = new Date(e.date).getDate(); return dd===7||dd===17||dd===27; }).length >= 7;
         }},
         { id: 'combo3', name: '三日坊主卒業', icon: '🔥', desc: '3日連続参拝', rank: 2, check: (d) => hasConsecutiveDays(d, 3) },
         { id: 'combo7', name: '習慣の鬼', icon: '👹', desc: '7日連続参拝', rank: 3, check: (d) => hasConsecutiveDays(d, 7) },
@@ -418,10 +417,11 @@
             let c=1; for(let i=0;i<s.length-1;i++) { if(s[i].shrine===s[i+1].shrine) c++; else c=1; if(c>=5) return true; }
             return false;
         }},
-        { id: 's_jingu', name: '神宮マニア', icon: '🏯', desc: '「神宮」へ行く', rank: 1, check: (d) => d.some(e => e.shrine.includes('神宮')) },
-        { id: 's_ten', name: '学問の神様', icon: '📖', desc: '「天満宮」へ行く', rank: 1, check: (d) => d.some(e => e.shrine.includes('天満宮')) },
-        { id: 's_inari', name: 'お稲荷さん', icon: '🦊', desc: '「稲荷」へ行く', rank: 1, check: (d) => d.some(e => e.shrine.includes('稲荷')) },
-        { id: 's_hachi', name: '八幡宮の加護', icon: '⚔️', desc: '「八幡」へ行く', rank: 1, check: (d) => d.some(e => e.shrine.includes('八幡')) },
+        // ★修正：不完全データ対応（?.）でエラー防止
+        { id: 's_jingu', name: '神宮マニア', icon: '🏯', desc: '「神宮」へ行く', rank: 1, check: (d) => d.some(e => (e.shrine || '').includes('神宮')) },
+        { id: 's_ten', name: '学問の神様', icon: '📖', desc: '「天満宮」へ行く', rank: 1, check: (d) => d.some(e => (e.shrine || '').includes('天満宮')) },
+        { id: 's_inari', name: 'お稲荷さん', icon: '🦊', desc: '「稲荷」へ行く', rank: 1, check: (d) => d.some(e => (e.shrine || '').includes('稲荷')) },
+        { id: 's_hachi', name: '八幡宮の加護', icon: '⚔️', desc: '「八幡」へ行く', rank: 1, check: (d) => d.some(e => (e.shrine || '').includes('八幡')) },
         { id: 'writer', name: '文豪', icon: '🖋️', desc: '長いメモを書く', rank: 1, check: (d) => d.some(e => e.note && e.note.length >= 50) },
         { id: 'friend', name: '代筆者', icon: '✍️', desc: '自分以外を記録', rank: 1, check: (d) => d.some(e => e.name !== '自分') },
         { id: 'party', name: '賑やかな参拝', icon: '🎉', desc: '3人以上の名前', rank: 2, check: (d) => new Set(d.map(e => e.name)).size >= 3 },
@@ -437,7 +437,10 @@
         else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) { document.documentElement.setAttribute('data-theme', 'dark'); }
 
         const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) entries = JSON.parse(stored);
+        if (stored) {
+            entries = JSON.parse(stored);
+            entries.forEach(e => { if(!e.name) e.name = '自分'; });
+        }
         
         document.getElementById('input-date').valueAsDate = new Date();
         
@@ -446,21 +449,23 @@
         document.getElementById('filter-start').valueAsDate = start;
         document.getElementById('filter-end').valueAsDate = today;
 
-        loadMyName(); // ★設定名の読み込み
-        checkDailyOmikuji(); // ★1日1回チェック
+        loadMyName();
+        checkDailyOmikuji(); 
 
         updateUI(); updateStreak(); renderBadges();
     };
 
-    // --- ★アプリ内おみくじロジック ---
     function loadMyName() {
         const name = localStorage.getItem('omikuji_app_myname') || '自分';
         document.getElementById('setting-my-name').value = name;
+        document.getElementById('input-name').value = name; 
         return name;
     }
 
     function saveMyName() {
-        localStorage.setItem('omikuji_app_myname', document.getElementById('setting-my-name').value.trim() || '自分');
+        const name = document.getElementById('setting-my-name').value.trim() || '自分';
+        localStorage.setItem('omikuji_app_myname', name);
+        document.getElementById('input-name').value = name;
     }
 
     function checkDailyOmikuji() {
@@ -472,14 +477,9 @@
         if (lastDraw === today) {
             btn.style.display = 'none';
             msg.style.display = 'block';
-            
-            // 今日の手帖神社の結果を取得して表示
-            const entry = entries.find(e => e.date === today && e.shrine === '手帖神社');
-            if(entry) {
-                msg.textContent = `本日はすでに「${entry.result}」を引いています。`;
-            } else {
-                msg.textContent = '本日はすでに引いています。';
-            }
+            const entry = entries.find(e => e.date === today && e.shrine === '電脳神社');
+            if(entry) msg.textContent = `本日はすでに「${entry.result}」を引いています。`;
+            else msg.textContent = '本日はすでに引いています。';
         } else {
             btn.style.display = 'block';
             msg.style.display = 'none';
@@ -489,14 +489,18 @@
     function drawDailyOmikuji() {
         const today = new Date().toISOString().split('T')[0];
         const lastDraw = localStorage.getItem('omikuji_app_last_draw');
-        
-        // 物理的・社会的な事実による却下
-        if(lastDraw === today) {
-            alert('社会的にアウトです。1日1回までです。');
-            return;
-        }
+        if(lastDraw === today) return alert('社会的にアウトです。1日1回までです。');
 
-        const fortunes = ['大吉','大吉','吉','吉','吉','中吉','中吉','小吉','末吉','凶','大凶'];
+        // ★確率調整：大凶の確率を激減させ、吉方面を分厚く
+        const fortunes = [
+            '大吉','大吉','大吉',
+            '吉','吉','吉','吉','吉',
+            '中吉','中吉','中吉','中吉',
+            '小吉','小吉','小吉',
+            '末吉','末吉',
+            '凶','凶',
+            '大凶'
+        ];
         const result = fortunes[Math.floor(Math.random() * fortunes.length)];
         const myName = loadMyName();
 
@@ -508,29 +512,21 @@
         box.classList.add('shaking');
         modal.classList.add('show');
 
-        // 1.5秒後に結果発表
         setTimeout(() => {
             box.classList.remove('shaking');
             box.textContent = '🎉';
             resultText.innerHTML = `<span style="font-size:32px; color:#D32F2F;">${result}</span><br><br><span style="font-size:12px; color:#666;">自動登録しました。</span>`;
             
             entries.unshift({
-                id: Date.now(),
-                name: myName,
-                shrine: '手帖神社',
-                date: today,
-                result: result,
-                note: 'アプリ内おみくじ'
+                id: Date.now(), name: myName, shrine: '電脳神社', date: today, result: result, note: 'アプリ内おみくじ'
             });
             
             localStorage.setItem('omikuji_app_last_draw', today);
-            saveData();
-            checkDailyOmikuji();
+            saveData(); checkDailyOmikuji();
             
-            // さらに1.5秒後に閉じて履歴へ
             setTimeout(() => {
                 closeModal('draw-modal');
-                box.textContent = '📦'; // 箱を戻す
+                box.textContent = '📦';
                 switchTab('history');
             }, 1500);
             
@@ -545,21 +541,19 @@
         const map = {'input':0, 'history':1, 'analysis':2, 'collection':3, 'settings':4};
         tabs[map[t]].classList.add('active');
         
-        if(t === 'input') {
-            checkDailyOmikuji();
-        } else if(t === 'analysis') {
-            updatePersonFilter(); 
-            updateChart();
-        } else if(t === 'history') {
-            switchHistoryView('list');
-        }
+        if(t === 'input') checkDailyOmikuji();
+        else if(t === 'analysis') { updatePersonFilter(); updateChart(); }
+        else if(t === 'history') switchHistoryView('list');
     }
 
-    // --- 入力・履歴 ---
     function addEntry() {
         const name = document.getElementById('input-name').value.trim();
         const shrine = document.getElementById('input-shrine').value.trim();
         if(!name || !shrine) return alert('名前と神社名を入れてね！');
+        
+        localStorage.setItem('omikuji_app_myname', name);
+        document.getElementById('setting-my-name').value = name;
+
         entries.unshift({
             id: Date.now(), name, shrine,
             date: document.getElementById('input-date').value,
@@ -577,9 +571,8 @@
             entries = entries.filter(e => e.id !== id);
             saveData();
             
-            // もし今日の手帖神社の記録を消したら、また引けるようにする配慮
             const today = new Date().toISOString().split('T')[0];
-            const hasTodayAppDraw = entries.some(e => e.date === today && e.shrine === '手帖神社');
+            const hasTodayAppDraw = entries.some(e => e.date === today && e.shrine === '電脳神社');
             if(!hasTodayAppDraw) {
                 localStorage.removeItem('omikuji_app_last_draw');
                 checkDailyOmikuji();
@@ -590,6 +583,17 @@
     function saveData() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
         updateUI(); updateStreak(); renderBadges();
+    }
+
+    function updateStreak() {
+        if(entries.length === 0) return;
+        const dates = [...new Set(entries.map(e => e.date))].sort((a,b) => new Date(b) - new Date(a));
+        let streak = 1;
+        for(let i=0; i<dates.length-1; i++) {
+            const diff = (new Date(dates[i]) - new Date(dates[i+1])) / 86400000;
+            if(Math.round(diff) === 1) streak++; else break;
+        }
+        document.getElementById('streak-days').textContent = streak;
     }
 
     function updateUI() {
@@ -632,7 +636,6 @@
         return '#333';
     }
 
-    // --- カレンダー ---
     function switchHistoryView(view) {
         document.getElementById('view-list-btn').classList.toggle('active', view === 'list');
         document.getElementById('view-cal-btn').classList.toggle('active', view === 'calendar');
@@ -700,7 +703,6 @@
         document.getElementById('day-modal').classList.add('show');
     }
 
-    // --- 分析 ---
     function switchChartType(type) {
         currentChartType = type;
         document.getElementById('toggle-luck').classList.remove('active');
@@ -877,7 +879,6 @@
         document.getElementById('analysis-summary').textContent = `対象データ: ${targetData.length}件`;
     }
 
-    // --- シェア & 御朱印 ---
     function shareText(id) {
         const e = entries.find(x => x.id === id);
         if(!e) return;
